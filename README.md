@@ -16,7 +16,7 @@ Example case: `SG-4X7Q-9MKD`
 
 ## How it works today
 
-Plain HTML, CSS and JavaScript, no build step. Fonts are self-hosted (Schibsted Grotesk, SIL Open Font License).
+Plain HTML, CSS and JavaScript, no build step. Fonts are self-hosted (Schibsted Grotesk, SIL Open Font License). Photos are AI-generated and show fictional customer companies; they are stored as WebP in two sizes (`img/`).
 Until the backend is connected, cases are stored only in the visitor's browser (`localStorage`).
 
 ## Planned next steps

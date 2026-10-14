@@ -14,7 +14,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='14' fill='%231C2228'/%3E%3Crect x='12' y='17' width='28' height='7' rx='3.5' fill='%23fff'/%3E%3Crect x='20' y='29' width='32' height='7' rx='3.5' fill='%239DB7D3'/%3E%3Crect x='12' y='41' width='22' height='7' rx='3.5' fill='%23fff'/%3E%3Crect x='36' y='11' width='4' height='43' rx='2' fill='%23FF7A1A'/%3E%3C/svg%3E">
 <link rel="preload" href="fonts/sg-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/sg-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
@@ -67,6 +67,8 @@
       </aside>
     </section>
 
+    <figure class="band"><img src="img/hero-werkhalle-1600.webp" srcset="img/hero-werkhalle-800.webp 800w, img/hero-werkhalle-1600.webp 1600w" sizes="(max-width: 1168px) 100vw, 1072px" width="1600" height="1067" alt="" data-i18n-alt="alt.hero" fetchpriority="high"></figure>
+
     <section class="results" id="results" hidden aria-live="polite">
       <div class="results-head">
         <h2 id="resultsTitle"></h2>
@@ -91,29 +93,52 @@
       <p class="hosting" data-i18n="product.hosting"></p>
     </section>
 
+    <section class="industries" aria-labelledby="indTitle">
+      <h2 id="indTitle" data-i18n="ind.title">In use across industries</h2>
+      <p class="lead" data-i18n="ind.lead"></p>
+      <div class="ind-grid">
+        <figure class="ind"><img src="img/branche-industrie-1600.webp" srcset="img/branche-industrie-800.webp 800w, img/branche-industrie-1600.webp 1600w" sizes="(max-width: 720px) 100vw, (max-width: 960px) 50vw, 260px" width="1600" height="1067" alt="" data-i18n-alt="alt.food" loading="lazy">
+          <figcaption><strong data-i18n="ind.food"></strong><span data-i18n="ind.food.d"></span></figcaption>
+        </figure>
+        <figure class="ind"><img src="img/branche-logistik-1600.webp" srcset="img/branche-logistik-800.webp 800w, img/branche-logistik-1600.webp 1600w" sizes="(max-width: 720px) 100vw, (max-width: 960px) 50vw, 260px" width="1600" height="1067" alt="" data-i18n-alt="alt.log" loading="lazy">
+          <figcaption><strong data-i18n="ind.log"></strong><span data-i18n="ind.log.d"></span></figcaption>
+        </figure>
+        <figure class="ind"><img src="img/branche-handel-1600.webp" srcset="img/branche-handel-800.webp 800w, img/branche-handel-1600.webp 1600w" sizes="(max-width: 720px) 100vw, (max-width: 960px) 50vw, 260px" width="1600" height="1067" alt="" data-i18n-alt="alt.retail" loading="lazy">
+          <figcaption><strong data-i18n="ind.retail"></strong><span data-i18n="ind.retail.d"></span></figcaption>
+        </figure>
+        <figure class="ind"><img src="img/branche-pflege-1600.webp" srcset="img/branche-pflege-800.webp 800w, img/branche-pflege-1600.webp 1600w" sizes="(max-width: 720px) 100vw, (max-width: 960px) 50vw, 260px" width="1600" height="1067" alt="" data-i18n-alt="alt.care" loading="lazy">
+          <figcaption><strong data-i18n="ind.care"></strong><span data-i18n="ind.care.d"></span></figcaption>
+        </figure>
+      </div>
+    </section>
+
     <section class="topics" aria-labelledby="topicsTitle">
       <h2 id="topicsTitle" data-i18n="topics.title">Browse by topic</h2>
       <div class="topic-index" id="topicIndex"></div>
     </section>
 
     <section class="stuck">
-      <div>
+      <figure class="stuck-photo"><img src="img/support-team-1600.webp" srcset="img/support-team-800.webp 800w, img/support-team-1600.webp 1600w" sizes="(max-width: 960px) 100vw, 440px" width="1600" height="1067" alt="" data-i18n-alt="alt.support" loading="lazy"><figcaption data-i18n="support.photo"></figcaption></figure>
+      <div class="stuck-body">
         <h2 data-i18n="stuck.title">Need the service desk?</h2>
         <p data-i18n="stuck.text"></p>
-      </div>
-      <div class="stuck-actions">
-        <a class="btn" href="#/new" data-i18n="nav.new">Open a case</a>
-        <a class="btn ghost" href="#/track" data-i18n="nav.track">Case status</a>
+        <div class="stuck-actions">
+          <a class="btn" href="#/new" data-i18n="nav.new">Open a case</a>
+          <a class="btn ghost" href="#/track" data-i18n="nav.track">Case status</a>
+        </div>
       </div>
     </section>
 
     <section class="status" aria-labelledby="statusTitle">
+      <div class="status-main">
       <div class="status-head">
         <h2 id="statusTitle" data-i18n="status.title">System status</h2>
         <p class="status-ok"><span class="dot" aria-hidden="true"></span><span data-i18n="status.ok"></span></p>
       </div>
       <ul class="status-list" id="statusList"></ul>
       <p class="status-foot"><span data-i18n="status.regions"></span><br><span data-i18n="status.incident"></span> <span id="statusChecked"></span></p>
+      </div>
+      <figure class="status-photo"><img src="img/vertrauen-rechenzentrum-1600.webp" srcset="img/vertrauen-rechenzentrum-800.webp 800w, img/vertrauen-rechenzentrum-1600.webp 1600w" sizes="(max-width: 960px) 100vw, 360px" width="1600" height="1067" alt="" data-i18n-alt="alt.dc" loading="lazy"></figure>
     </section>
   </div>
 
@@ -127,6 +152,7 @@
   <div class="view narrow" data-view="new" hidden>
     <h1 data-i18n="new.title">Open a case</h1>
     <p class="lead" data-i18n="new.lead"></p>
+    <figure class="page-photo"><img src="img/kontakt-meeting-1600.webp" srcset="img/kontakt-meeting-800.webp 800w, img/kontakt-meeting-1600.webp 1600w" sizes="(max-width: 800px) 100vw, 760px" width="1600" height="1067" alt="" data-i18n-alt="alt.meeting" loading="lazy"></figure>
 
     <form id="ticketForm" class="form" novalidate>
       <p class="form-alert" id="formAlert" role="alert" hidden></p>
@@ -218,6 +244,7 @@
         </div>
         <p class="form-alert" id="trackAlert" role="alert" hidden></p>
       </form>
+      <figure class="page-photo"><img src="img/support-terminal-montage-1600.webp" srcset="img/support-terminal-montage-800.webp 800w, img/support-terminal-montage-1600.webp 1600w" sizes="(max-width: 800px) 100vw, 760px" width="1600" height="1067" alt="" data-i18n-alt="alt.terminal" loading="lazy"></figure>
       <p class="example"><span data-i18n="track.example"></span> <button type="button" class="link" id="trackExample" data-i18n="track.example.btn">Open example</button></p>
     </div>
     <div id="ticketView" hidden></div>
@@ -233,7 +260,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="content.js"></script>
-<script src="app.js"></script>
+<script src="content.js?v=3"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

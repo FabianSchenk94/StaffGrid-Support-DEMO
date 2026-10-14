@@ -50,6 +50,7 @@
     $$('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
     $$('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
     $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+    $$('[data-i18n-alt]').forEach(el => { el.alt = t(el.dataset.i18nAlt); });
     $$('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
     buildCategorySelect();
     buildPriorities();
@@ -134,6 +135,16 @@
     $('#rotaHours').textContent = `${days[0]}–${days[4]} 07:00–20:00, ${days[5]} 08:00–14:00. ${t('rota.tz')}.`;
   }
 
+  /* ---------- Bilder ---------- */
+  function photo(name, altKey, sizes, cls) {
+    return el('img', { class: cls || null, src: `img/${name}-800.webp`, srcset: `img/${name}-800.webp 800w, img/${name}-1600.webp 1600w`,
+      sizes: sizes || '(max-width: 800px) 100vw, 760px', width: '1600', height: '1067', loading: 'lazy', alt: t(altKey) });
+  }
+  const MODULE_IMG = { time: ['modul-zeiterfassung', 'alt.time'], plan: ['modul-planung', 'alt.plan'], absence: ['modul-abwesenheiten', 'alt.absence'],
+    payroll: ['modul-lohnexport', 'alt.payroll'], api: ['modul-integrationen', 'alt.api'] };
+  const CAT_IMG = { sso: 'api', time: 'time', plan: 'plan', absence: 'absence', payroll: 'payroll', api: 'api' };
+  const ARTICLE_IMG = { 'terminal-offline': ['support-terminal-montage', 'alt.terminal'], 'licences': ['kontakt-meeting', 'alt.meeting'] };
+
   /* ---------- Produktblock mit App-Ansicht ---------- */
   // Schichtmuster: e=Früh, l=Spät, n=Nacht, a=abwesend, -=frei
   const MOCK = [
@@ -164,7 +175,9 @@
 
     const dl = $('#modules'); dl.textContent = '';
     ['time', 'plan', 'absence', 'payroll', 'api'].forEach(m =>
-      dl.append(el('div', { class: 'module' }, el('dt', null, t('mod.' + m)), el('dd', null, t('mod.' + m + '.d')))));
+      dl.append(el('div', { class: 'module' },
+        photo(MODULE_IMG[m][0], MODULE_IMG[m][1], '120px', 'module-img'),
+        el('div', null, el('dt', null, t('mod.' + m)), el('dd', null, t('mod.' + m + '.d'))))));
   }
 
   /* ---------- Wissensdatenbank ---------- */
@@ -219,10 +232,12 @@
     const x = art(a);
     const msg = el('p', { class: 'helpful-msg', 'aria-live': 'polite' });
     const others = ARTICLES.filter(o => o.cat === a.cat && o.id !== a.id);
+    const pic = ARTICLE_IMG[a.id] || (CAT_IMG[a.cat] && MODULE_IMG[CAT_IMG[a.cat]]);
     box.append(
       el('p', { class: 'crumb' }, t('cat.' + a.cat)),
       el('h1', null, x.t),
       el('p', { class: 'lead' }, x.s),
+      pic ? el('figure', { class: 'page-photo' }, photo(pic[0], pic[1])) : null,
       el('h2', { class: 'steps-title' }, t('article.steps')),
       el('ol', { class: 'steps' }, x.steps.map(s => el('li', null, s))),
       el('div', { class: 'helpful' },
