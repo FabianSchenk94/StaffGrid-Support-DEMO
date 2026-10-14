@@ -14,8 +14,8 @@
   const LOCALE = { en: 'en-GB', fr: 'fr-FR', de: 'de-DE' };
   const TZ = 'Europe/Berlin';
   const PRIOS = [
-    { id: 'p1', c: '#A8432C' }, { id: 'p2', c: '#E9A93B' },
-    { id: 'p3', c: '#1F5A4E' }, { id: 'p4', c: '#9AA6A2' }
+    { id: 'p1', c: '#B42318' }, { id: 'p2', c: '#FF7A1A' },
+    { id: 'p3', c: '#2F5D8A' }, { id: 'p4', c: '#9AA2AC' }
   ];
   // Servicezeiten (Mo=0 … So=6) in Europe/Berlin; null = geschlossen
   const HOURS = [[7, 20], [7, 20], [7, 20], [7, 20], [7, 20], [8, 14], null];
