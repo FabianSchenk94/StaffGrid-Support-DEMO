@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rotawren Support – Help center and requests</title>
-<meta name="description" content="Fictional demo: support portal for Rotawren, a shift planning and time tracking app for hospitality teams. Help center in English, French and German, send and track support requests.">
+<title>StaffGrid Support – Knowledge base and service desk</title>
+<meta name="description" content="Fictional demo: support portal of StaffGrid, an enterprise workforce management cloud for time tracking, scheduling, absences and payroll integration. Knowledge base in English, French and German, open and track service desk cases.">
 <meta name="robots" content="noindex, nofollow">
-<meta property="og:title" content="Rotawren Support (Demo)">
-<meta property="og:description" content="Fictional SaaS support portal with help center and request tracking. Portfolio demo by Fabian Schenk.">
+<meta property="og:title" content="StaffGrid Support (Demo)">
+<meta property="og:description" content="Fictional enterprise SaaS support portal with knowledge base and case tracking. Portfolio demo by Fabian Schenk.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#1F5A4E">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231F5A4E'/%3E%3Crect x='6' y='8' width='14' height='4' rx='2' fill='%23F2F4F1'/%3E%3Crect x='10' y='14' width='16' height='4' rx='2' fill='%23F2F4F1'/%3E%3Crect x='6' y='20' width='10' height='4' rx='2' fill='%23E9A93B'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231F5A4E'/%3E%3Cg fill='%23F2F4F1'%3E%3Crect x='5' y='5' width='6' height='6' rx='1.5'/%3E%3Crect x='13' y='5' width='6' height='6' rx='1.5'/%3E%3Crect x='5' y='13' width='6' height='6' rx='1.5'/%3E%3Crect x='21' y='13' width='6' height='6' rx='1.5'/%3E%3Crect x='13' y='21' width='6' height='6' rx='1.5'/%3E%3Crect x='21' y='21' width='6' height='6' rx='1.5'/%3E%3C/g%3E%3Cg fill='%23E9A93B'%3E%3Crect x='21' y='5' width='6' height='6' rx='1.5'/%3E%3Crect x='13' y='13' width='6' height='6' rx='1.5'/%3E%3Crect x='5' y='21' width='6' height='6' rx='1.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="fonts/sg-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/sg-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="styles.css">
@@ -21,16 +21,19 @@
 
 <header class="bar">
   <div class="bar-in">
-    <a class="brand" href="#/" aria-label="Rotawren Support">
-      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor"/><rect x="6" y="8" width="14" height="4" rx="2" fill="#F2F4F1"/><rect x="10" y="14" width="16" height="4" rx="2" fill="#F2F4F1"/><rect x="6" y="20" width="10" height="4" rx="2" fill="#E9A93B"/></svg>
-      <span class="brand-name">Rotawren</span>
+    <a class="brand" href="#/" aria-label="StaffGrid Support">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <g fill="#1F5A4E"><rect x="2" y="2" width="8" height="8" rx="2"/><rect x="12" y="2" width="8" height="8" rx="2"/><rect x="2" y="12" width="8" height="8" rx="2"/><rect x="22" y="12" width="8" height="8" rx="2"/><rect x="12" y="22" width="8" height="8" rx="2"/><rect x="22" y="22" width="8" height="8" rx="2"/></g>
+        <g fill="#E9A93B"><rect x="22" y="2" width="8" height="8" rx="2"/><rect x="12" y="12" width="8" height="8" rx="2"/><rect x="2" y="22" width="8" height="8" rx="2"/></g>
+      </svg>
+      <span class="brand-name">StaffGrid</span>
       <span class="brand-sub">Support</span>
       <span class="badge" data-i18n="demo.badge">Demo</span>
     </a>
     <nav class="nav" aria-label="Main">
-      <a href="#/" data-route="help" data-i18n="nav.help">Help center</a>
-      <a href="#/new" data-route="new" data-i18n="nav.new">Send a request</a>
-      <a href="#/track" data-route="track" data-i18n="nav.track">Track a request</a>
+      <a href="#/" data-route="help" data-i18n="nav.help">Knowledge base</a>
+      <a href="#/new" data-route="new" data-i18n="nav.new">Open a case</a>
+      <a href="#/track" data-route="track" data-i18n="nav.track">Case status</a>
     </nav>
     <div class="lang" role="group" data-i18n-aria="nav.lang" aria-label="Language">
       <button type="button" data-lang="en" lang="en" aria-label="English">EN</button>
@@ -42,14 +45,14 @@
 
 <main id="main" tabindex="-1">
 
-  <!-- Hilfe-Center -->
+  <!-- Wissensdatenbank -->
   <div class="view" data-view="help">
     <section class="hero">
       <div class="hero-text">
-        <h1 data-i18n="hero.title">Answers for your rota, clock-ins and payroll.</h1>
+        <h1 data-i18n="hero.title">Support for admins running the StaffGrid Workforce Cloud.</h1>
         <p class="lead" data-i18n="hero.lead"></p>
         <form class="search" id="searchForm" role="search">
-          <label class="sr" for="q" data-i18n="search.label">Search the help center</label>
+          <label class="sr" for="q" data-i18n="search.label">Search the knowledge base</label>
           <svg class="search-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           <input id="q" name="q" type="search" autocomplete="off" data-i18n-ph="search.placeholder">
           <button type="submit" class="btn" data-i18n="search.button">Search</button>
@@ -58,10 +61,11 @@
 
       <aside class="rota" aria-labelledby="rotaTitle">
         <div class="rota-head">
-          <h2 id="rotaTitle" data-i18n="rota.title">Support team on shift</h2>
+          <h2 id="rotaTitle" data-i18n="rota.title">Service desk hours</h2>
           <p class="rota-state" id="rotaState"><span class="dot" aria-hidden="true"></span><span id="rotaStateText"></span></p>
         </div>
         <div class="rota-grid" id="rotaGrid" aria-hidden="true"></div>
+        <p class="rota-p1"><span class="p1-line" aria-hidden="true"></span><span data-i18n="rota.p1"></span></p>
         <p class="rota-tz" id="rotaHours"></p>
       </aside>
     </section>
@@ -74,6 +78,22 @@
       <ul class="article-list" id="resultsList"></ul>
     </section>
 
+    <section class="product" aria-labelledby="productTitle">
+      <div class="product-intro">
+        <h2 id="productTitle" data-i18n="product.title">What is StaffGrid?</h2>
+        <p class="lead" data-i18n="product.lead"></p>
+      </div>
+      <div class="product-body">
+        <figure class="mock" aria-hidden="true">
+          <div class="mock-bar"><span></span><span></span><span></span></div>
+          <div class="mock-head"><strong id="mockTitle"></strong><span class="mock-legend" id="mockLegend"></span></div>
+          <div class="mock-grid" id="mockGrid"></div>
+        </figure>
+        <dl class="modules" id="modules"></dl>
+      </div>
+      <p class="hosting" data-i18n="product.hosting"></p>
+    </section>
+
     <section class="topics" aria-labelledby="topicsTitle">
       <h2 id="topicsTitle" data-i18n="topics.title">Browse by topic</h2>
       <div class="topic-index" id="topicIndex"></div>
@@ -81,12 +101,12 @@
 
     <section class="stuck">
       <div>
-        <h2 data-i18n="stuck.title">Still stuck?</h2>
+        <h2 data-i18n="stuck.title">Need the service desk?</h2>
         <p data-i18n="stuck.text"></p>
       </div>
       <div class="stuck-actions">
-        <a class="btn" href="#/new" data-i18n="nav.new">Send a request</a>
-        <a class="btn ghost" href="#/track" data-i18n="nav.track">Track a request</a>
+        <a class="btn" href="#/new" data-i18n="nav.new">Open a case</a>
+        <a class="btn ghost" href="#/track" data-i18n="nav.track">Case status</a>
       </div>
     </section>
 
@@ -96,19 +116,19 @@
         <p class="status-ok"><span class="dot" aria-hidden="true"></span><span data-i18n="status.ok"></span></p>
       </div>
       <ul class="status-list" id="statusList"></ul>
-      <p class="status-foot"><span data-i18n="status.incident"></span> <span id="statusChecked"></span></p>
+      <p class="status-foot"><span data-i18n="status.regions"></span><br><span data-i18n="status.incident"></span> <span id="statusChecked"></span></p>
     </section>
   </div>
 
   <!-- Artikel -->
   <div class="view narrow" data-view="article" hidden>
-    <a class="back" href="#/" data-i18n="article.back">Back to the help center</a>
+    <a class="back" href="#/" data-i18n="article.back">Back to the knowledge base</a>
     <article id="article"></article>
   </div>
 
-  <!-- Neue Anfrage -->
+  <!-- Fall eröffnen -->
   <div class="view narrow" data-view="new" hidden>
-    <h1 data-i18n="new.title">Send a request</h1>
+    <h1 data-i18n="new.title">Open a case</h1>
     <p class="lead" data-i18n="new.lead"></p>
 
     <form id="ticketForm" class="form" novalidate>
@@ -120,26 +140,31 @@
           <p class="err" id="e_name"></p>
         </div>
         <div class="field">
-          <label for="f_email" data-i18n="f.email">Email address</label>
+          <label for="f_email" data-i18n="f.email">Business email</label>
           <input id="f_email" name="email" type="email" autocomplete="email" maxlength="120" required>
           <p class="err" id="e_email"></p>
         </div>
       </div>
       <div class="row2">
         <div class="field">
-          <label for="f_workspace" data-i18n="f.workspace">Workspace name</label>
-          <input id="f_workspace" name="workspace" maxlength="80" aria-describedby="h_workspace">
-          <p class="hint" id="h_workspace" data-i18n="f.workspace.h"></p>
+          <label for="f_company" data-i18n="f.company">Company</label>
+          <input id="f_company" name="company" autocomplete="organization" maxlength="100" required>
+          <p class="err" id="e_company"></p>
         </div>
         <div class="field">
-          <label for="f_category" data-i18n="f.category">What is it about?</label>
-          <select id="f_category" name="category" required></select>
-          <p class="err" id="e_category"></p>
+          <label for="f_tenant" data-i18n="f.tenant">Tenant ID</label>
+          <input id="f_tenant" name="tenant" maxlength="40" aria-describedby="h_tenant" autocomplete="off">
+          <p class="hint" id="h_tenant" data-i18n="f.tenant.h"></p>
         </div>
+      </div>
+      <div class="field">
+        <label for="f_category" data-i18n="f.category">Topic</label>
+        <select id="f_category" name="category" required></select>
+        <p class="err" id="e_category"></p>
       </div>
 
       <fieldset class="field prio">
-        <legend data-i18n="f.priority">How urgent is it?</legend>
+        <legend data-i18n="f.priority">Priority</legend>
         <div class="prio-list" id="prioList"></div>
       </fieldset>
 
@@ -156,8 +181,8 @@
       </div>
 
       <div class="hp" aria-hidden="true">
-        <label for="f_company" data-i18n="f.honeypot">Leave this field empty</label>
-        <input id="f_company" name="company" tabindex="-1" autocomplete="off">
+        <label for="f_website" data-i18n="f.honeypot">Leave this field empty</label>
+        <input id="f_website" name="website" tabindex="-1" autocomplete="off">
       </div>
 
       <div class="field check">
@@ -166,38 +191,35 @@
         <p class="err" id="e_consent"></p>
       </div>
 
-      <button type="submit" class="btn" id="submitBtn" data-i18n="f.submit">Send request</button>
+      <button type="submit" class="btn" id="submitBtn" data-i18n="f.submit">Open case</button>
     </form>
 
     <div class="done" id="ticketDone" hidden tabindex="-1">
-      <h2 data-i18n="ok.title">Request sent</h2>
-      <p id="doneText"></p>
+      <h2 data-i18n="ok.title">Case opened</h2>
       <p class="done-id" id="doneId"></p>
+      <p id="doneText"></p>
       <div class="stuck-actions">
-        <button type="button" class="btn" id="doneView" data-i18n="ok.view">View request</button>
-        <button type="button" class="btn ghost" id="doneAnother" data-i18n="ok.another">Send another request</button>
+        <button type="button" class="btn" id="doneView" data-i18n="ok.view">View case</button>
+        <button type="button" class="btn ghost" id="doneCopy" data-i18n="ok.copy">Copy number</button>
+        <button type="button" class="link" id="doneAnother" data-i18n="ok.another">Open another case</button>
       </div>
     </div>
   </div>
 
-  <!-- Anfrage verfolgen -->
+  <!-- Fallstatus -->
   <div class="view narrow" data-view="track" hidden>
     <div id="trackLookup">
-      <h1 data-i18n="track.title">Track a request</h1>
+      <h1 data-i18n="track.title">Case status</h1>
       <p class="lead" data-i18n="track.lead"></p>
-      <form id="trackForm" class="form" novalidate>
-        <div class="row2">
-          <div class="field">
-            <label for="t_id" data-i18n="track.id">Request number</label>
-            <input id="t_id" name="id" autocomplete="off" maxlength="12" data-i18n-ph="track.id.ph" required>
-          </div>
-          <div class="field">
-            <label for="t_email" data-i18n="track.email">Email address</label>
-            <input id="t_email" name="email" type="email" autocomplete="email" maxlength="120" required>
+      <form id="trackForm" class="form track-form" novalidate>
+        <div class="field">
+          <label for="t_id" data-i18n="track.id">Case number</label>
+          <div class="track-row">
+            <input id="t_id" name="id" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="16" data-i18n-ph="track.id.ph" required>
+            <button type="submit" class="btn" data-i18n="track.button">Show case</button>
           </div>
         </div>
         <p class="form-alert" id="trackAlert" role="alert" hidden></p>
-        <button type="submit" class="btn" data-i18n="track.button">Show request</button>
       </form>
       <p class="example"><span data-i18n="track.example"></span> <button type="button" class="link" id="trackExample" data-i18n="track.example.btn">Open example</button></p>
     </div>
