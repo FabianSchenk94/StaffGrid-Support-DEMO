@@ -145,9 +145,10 @@
         const r = rows[rows.length - 1];
         if (r && (r.join(' ') + ' ' + w).length <= 16) r.push(w); else rows.push([w]);
         return rows;
-      }, []).forEach((row, i) => {
+      }, []).forEach((row, i, rows) => {
         const outer = el('span', { class: 'hl-line' });
-        const inner = el('span', { style: `--d:${i * 110}ms` }, row.join(' '));
+        // Leerzeichen am Zeilenende, sonst liest ein Screenreader "deskis"
+        const inner = el('span', { style: `--d:${i * 110}ms` }, row.join(' ') + (i < rows.length - 1 ? ' ' : ''));
         outer.append(inner); line.append(outer);
       });
       if (quiet) $$('.hl-line > span', line).forEach(n => { n.style.animation = 'none'; });
