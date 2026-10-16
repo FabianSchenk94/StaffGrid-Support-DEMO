@@ -4,15 +4,17 @@
  * Benötigte Einstellungen im Cloudflare-Dashboard (Settings → Variables and Secrets):
  *   JIRA_EMAIL  (Text)    – E-Mail-Adresse des Atlassian-Kontos
  *   JIRA_TOKEN  (Secret)  – API-Token von id.atlassian.com
+ *   AGENT_KEY   (Secret)  – Schlüssel für den KI-Agenten (ElevenLabs), gleicher Wert wie im Agenten-Tool
  * Optional:
  *   ISSUE_TYPE  (Text)    – Name des Vorgangstyps, falls die automatische Wahl nicht passt
  *
  * Aktionen (POST, JSON): create_case, get_case, reply_case
+ * Mit gültigem agent_key darf der Agent zusätzlich eine Priorität (p1–p4) als KI-Ersteinschätzung setzen.
  * Prüfung: GET /check  → zeigt, ob Jira erreichbar ist (keine persönlichen Daten)
  */
 
-const VERSION = '2026-10-16.4';
-const JIRA_SITE ='https://staffgrid-support.atlassian.net';
+const VERSION = '2026-10-16.5';
+const JIRA_SITE = 'https://staffgrid-support.atlassian.net';
 const PROJECT = 'SUP';
 const ALLOWED_ORIGINS = [
   'https://fabianschenk94.github.io',
@@ -23,6 +25,8 @@ const CATEGORIES = ['sso', 'time', 'plan', 'absence', 'payroll', 'api', 'account
 const ID_CHARS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 const ID_RE = /^SG-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}$/;
 const PRIO = { highest: 'p1', high: 'p2', medium: 'p3', low: 'p4', lowest: 'p4' };
+const PRIO_BY_ID = { '1': 'p1', '2': 'p2', '3': 'p3', '4': 'p4', '5': 'p4' };
+const JIRA_PRIO_ID = { p1: '1', p2: '2', p3: '3', p4: '4' };
 const PORTAL_PROP = 'staffgrid.portal';
 
 /* ---------- Bremse (pro Worker-Instanz, für ein Demo ausreichend) ---------- */
@@ -145,8 +149,14 @@ async function toCase(env, issue, id) {
   if (sc === 'done') status = 'resolved';
   else if (/customer|kunde/i.test(sname)) status = 'waiting';
   else if (/progress|bearbeitung|in arbeit|escalat|eskal|pending|ausstehend|investigat|untersuch|implement|work in/i.test(sname)) status = 'progress';
-  // Priorität erst zeigen, wenn der Service Desk den Fall angefasst hat
-  const priority = status === 'open' ? '' : (PRIO[String((f.priority && f.priority.name) || '').toLowerCase()] || '');
+  // Priorität: Solange der Fall „Eingegangen“ ist, gilt nur eine KI-Ersteinschätzung (Label ki-prio-pX).
+  // Danach zählt die Priorität, die der Service Desk in Jira führt.
+  const aiPrio = (f.labels || []).map(l => (l.match(/^ki-prio-(p[1-4])$/) || [])[1]).find(Boolean) || '';
+  const deskPrio = PRIO_BY_ID[String((f.priority && f.priority.id) || '')] ||
+    PRIO[String((f.priority && f.priority.name) || '').toLowerCase()] || '';
+  let priority = '', priorityBy = '';
+  if (status !== 'open' && deskPrio) { priority = deskPrio; priorityBy = 'desk'; }
+  else if (aiPrio) { priority = aiPrio; priorityBy = 'ai'; }
 
   const events = [
     { who: 'you', text: adfText(f.description), at: f.created },
@@ -162,11 +172,11 @@ async function toCase(env, issue, id) {
     const text = adfText(c.body);
     if (text) events.push({ who: fromPortal ? 'you' : 'team', text, at: c.created });
   }
-  return { id, category: cat, priority, status, subject: f.summary, created: f.created, updated: f.updated, events };
+  return { id, category: cat, priority, priorityBy, status, subject: f.summary, created: f.created, updated: f.updated, events };
 }
 
 /* ---------- Aktionen ---------- */
-async function createCase(env, d) {
+async function createCase(env, d, isAgent) {
   const name = clip(d.name, 100), email = clip(d.email, 200), company = clip(d.company, 150);
   const subject = clip(d.subject, 150).replace(/[\r\n]+/g, ' ');
   const description = clip(d.description, 5000);
@@ -175,22 +185,38 @@ async function createCase(env, d) {
   if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !company || !category || !subject || !description) {
     return { error: 'invalid', code: 400 };
   }
+  // Priorität darf nur der Agent setzen (KI-Ersteinschätzung); das Website-Formular nie
+  const aiPrio = isAgent && /^p[1-4]$/.test(String(d.priority || '').toLowerCase()) ? String(d.priority).toLowerCase() : '';
+  const reason = isAgent ? clip(d.priority_reason, 500) : '';
+  const source = isAgent ? (/voice|sprache|call/i.test(String(d.source)) ? 'Adrian Voice' : 'Adrian Chat') : 'Website';
+
   let id;
   for (let i = 0; i < 5; i++) { id = newCaseId(); if (!(await findIssue(env, id))) break; }
 
-  const created = await jira(env, 'POST', '/rest/api/3/issue', {
-    fields: {
-      project: { key: PROJECT },
-      issuetype: { id: await issueTypeId(env) },
-      summary: subject,
-      description: toAdf(description),
-      labels: ['fall-' + id, 'thema-' + category, 'quelle-website', 'sprache-' + lang]
-    }
-  });
+  const labels = ['fall-' + id, 'thema-' + category, isAgent ? 'quelle-agent' : 'quelle-website', 'sprache-' + lang];
+  if (aiPrio) labels.push('ki-prio-' + aiPrio);
+  const fields = {
+    project: { key: PROJECT },
+    issuetype: { id: await issueTypeId(env) },
+    summary: subject,
+    description: toAdf(description),
+    labels
+  };
+  let created;
+  if (aiPrio) {
+    // Jira-Priorität mitsetzen; erlaubt die Maske das Feld nicht, ohne Priorität anlegen (Label reicht fürs Portal)
+    try { created = await jira(env, 'POST', '/rest/api/3/issue', { fields: Object.assign({ priority: { id: JIRA_PRIO_ID[aiPrio] } }, fields) }); }
+    catch (e) { if (e.status !== 400) throw e; }
+  }
+  if (!created) created = await jira(env, 'POST', '/rest/api/3/issue', { fields });
+
   // Kontaktdaten nur als interne Notiz – erscheinen nie in der Statusansicht
+  let note = 'Kontakt (' + (isAgent ? 'aufgenommen vom KI-Agenten Adrian' : 'aus dem Portal') + ')\nFallnummer: ' + id +
+    '\nName: ' + name + '\nE-Mail: ' + email + '\nFirma: ' + company + '\nSprache: ' + lang + '\nKanal: ' + source;
+  if (aiPrio) note += '\n\nKI-Ersteinschätzung: ' + aiPrio.toUpperCase() + (reason ? '\nBegründung: ' + reason : '') +
+    '\nBitte prüfen und in Jira bestätigen oder anpassen.';
   await jira(env, 'POST', '/rest/api/3/issue/' + created.id + '/comment', {
-    body: toAdf('Kontakt (aus dem Portal)\nFallnummer: ' + id + '\nName: ' + name + '\nE-Mail: ' + email +
-      '\nFirma: ' + company + '\nSprache: ' + lang + '\nQuelle: ' + clip(d.source, 40)),
+    body: toAdf(note),
     properties: [{ key: 'sd.public.comment', value: { internal: true } }]
   });
   const issue = await findIssueById(env, created.id);
@@ -224,7 +250,7 @@ async function replyCase(env, d) {
 
 /* Verbindungstest: zeigt nur, ob Jira und das Projekt erreichbar sind */
 async function check(env) {
-  const out = { worker: true, version: VERSION, secrets: !!(env.JIRA_EMAIL && env.JIRA_TOKEN) };
+  const out = { worker: true, version: VERSION, secrets: !!(env.JIRA_EMAIL && env.JIRA_TOKEN), agent_key: !!env.AGENT_KEY };
   if (!out.secrets) return out;
   try { await jira(env, 'GET', '/rest/api/3/myself'); out.jira_login = true; }
   catch (e) { out.jira_login = false; out.jira_status = e.status; return out; }
@@ -257,23 +283,28 @@ export default {
     if (origin && !ALLOWED_ORIGINS.includes(origin)) return fail(403, 'origin', origin);
     if (!env.JIRA_EMAIL || !env.JIRA_TOKEN) return fail(500, 'not_configured', origin);
 
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (limited(ip, 'all', 30, 60000)) return fail(429, 'slow_down', origin);
-
     let d;
     try { d = await request.json(); } catch (e) { return fail(400, 'json', origin); }
     if (!d || typeof d !== 'object') return fail(400, 'json', origin);
 
+    // Agent (ElevenLabs) erkennt sich am geheimen Schlüssel; er teilt sich IP-Adressen mit anderen Kunden,
+    // daher eigene, gemeinsame Bremse statt der IP-Bremse
+    const isAgent = !!(env.AGENT_KEY && typeof d.agent_key === 'string' && d.agent_key === env.AGENT_KEY);
+    if (d.agent_key && !isAgent) return fail(403, 'agent_key', origin);
+    const ip = isAgent ? 'agent' : (request.headers.get('CF-Connecting-IP') || 'unknown');
+    const f = isAgent ? 4 : 1;   // Agent darf etwas mehr
+    if (limited(ip, 'all', 30 * f, 60000)) return fail(429, 'slow_down', origin);
+
     try {
       let r;
       if (d.action === 'create_case') {
-        if (limited(ip, 'create', 5, 600000)) return fail(429, 'slow_down', origin);
-        r = await createCase(env, d);
+        if (limited(ip, 'create', 5 * f, 600000)) return fail(429, 'slow_down', origin);
+        r = await createCase(env, d, isAgent);
       } else if (d.action === 'get_case') {
-        if (limited(ip, 'get', 10, 60000)) return fail(429, 'slow_down', origin);
+        if (limited(ip, 'get', 10 * f, 60000)) return fail(429, 'slow_down', origin);
         r = await getCase(env, d);
       } else if (d.action === 'reply_case') {
-        if (limited(ip, 'reply', 10, 600000)) return fail(429, 'slow_down', origin);
+        if (limited(ip, 'reply', 10 * f, 600000)) return fail(429, 'slow_down', origin);
         r = await replyCase(env, d);
       } else return fail(400, 'action', origin);
       if (r.error) return fail(r.code, r.error, origin);
