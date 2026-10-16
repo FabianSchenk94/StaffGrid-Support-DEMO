@@ -6,6 +6,11 @@ nennt den Status eines Falls und ergänzt Nachrichten zu bestehenden Fällen.
 
 Kette: Website-Widget → ElevenLabs-Agent → Webhook-Tools → Cloudflare Worker → Jira Service Management
 
+**Stand 16.10.2026:** Agent angelegt und veröffentlicht als „[StaffGrid] Adrian Support (Chat & Voice)“,
+ID `agent_5701m52nfb4seg4960zs4v308034` (Duplikat von Ferdinand, alle Hotel-Inhalte ersetzt).
+Stimme „Mark – Casual, Relaxed and Light“, Wissensbasis „immer im Prompt“ statt RAG, Widget mit oranger Orb,
+Zustimmungs-Speicherschlüssel `staffgrid_adrian_terms`. Die Website setzt `override-language` passend zur gewählten Sprache.
+
 ---
 
 ## 0. Vorbereitung: Agenten-Schlüssel (einmalig, macht Fabian)
