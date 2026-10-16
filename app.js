@@ -404,13 +404,13 @@
       return publicView(c);
     },
     async get(id) {
+      if (id === EXAMPLE_ID) return getExample();   // Beispielfall bleibt immer lokal
       if (SG_CONFIG.apiUrl) return (await post('get_case', { id })).case;
-      if (id === EXAMPLE_ID) return getExample();
       return publicView(load().find(x => x.id === id)) || null;
     },
     async reply(id, text) {
-      if (SG_CONFIG.apiUrl) return (await post('reply_case', { id, text })).case;
       const now = new Date().toISOString();
+      if (id !== EXAMPLE_ID && SG_CONFIG.apiUrl) return (await post('reply_case', { id, text })).case;
       if (id === EXAMPLE_ID) { const c = getExample(); c.events.push({ who: 'you', text, at: now }); c.status = 'open'; c.updated = now; return c; }
       const list = load(), c = list.find(x => x.id === id);
       if (!c) return null;
