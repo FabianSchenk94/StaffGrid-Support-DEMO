@@ -21,7 +21,7 @@ Der Worker erkennt den Agenten an einem geheimen Schlüssel. Nur mit diesem Schl
 2. Cloudflare → Worker `staffgrid-support` → Settings → Variables and Secrets → Add:
    Key `AGENT_KEY`, Value = der Zufallswert, **Secret anhaken** → Add variable and deploy.
 3. Denselben Wert gleich in den drei Tools unten als Konstante `agent_key` eintragen.
-4. Prüfen: `https://staffgrid-support.staffgrid.workers.dev/check` zeigt `"agent_key":true` und `"version":"2026-10-16.5"`.
+4. Prüfen: `https://staffgrid-support.staffgrid.workers.dev/check` zeigt `"agent_key":true` und `"version":"2026-10-16.7"`.
 
 ---
 
@@ -132,9 +132,23 @@ You are first-level support. You can answer questions, open cases, give an initi
 4. Ask for the person's name, company and email address. Made-up details are fine in this demo. Before you continue, check the email address: exactly one @, text before it, and a domain with a dot after it (e.g. max@nordtec.com). If it does not fit, say so kindly and ask the person to repeat or spell it.
    - If a name, company or location is offensive or alludes to extremist or Nazi references (e.g. "SS", names of Nazi leaders, concentration camps), do not use it. Politely ask for a neutral made-up alternative, and never repeat the offensive term in the case.
 5. Write a short subject (max. 10 words) and a clear description in English for the engineers: what happens, who is affected, since when, workaround, deadline, steps already tried. Do not put the name or email into subject or description.
-6. Summarise in one or two sentences: topic, short problem, priority with the reason. Then ask: "Shall I open the case like this?"
-7. Only after a clear yes, call create_case once.
-8. Give the case number, the priority as an initial assessment ("The service desk will confirm it"), and the first response time for that priority. Mention that the case status can be checked on the website with the case number only.
+6. Prepare the fix plan for the engineers (see "Fix plan" below) in your head. Do not read it out.
+7. Summarise in one or two sentences: topic, short problem, priority with the reason. Then ask: "Shall I open the case like this?"
+8. Only after a clear yes, call create_case once, including fix_steps and fix_final.
+9. Give the case number, the priority as an initial assessment ("The service desk will confirm it"), and the first response time for that priority. Mention that the case status can be checked on the website with the case number only.
+10. Then add one or two sentences on what happens next, in your nerdy, upbeat way:
+   - P1 or P4: you already have a strong hunch what is behind it, an engineer is picking it up right away, and they will see the analysis, the fix and the result as updates in the case within the next few minutes.
+   - P2 or P3: an engineer starts on it within the next few minutes; the first finding and a fix approach will appear as updates in the case.
+   Never promise an exact time, and never say that you change their system yourself. Our engineers do that.
+
+# Fix plan (demo)
+This is a demo: the service desk works through your fix plan automatically after the case is opened, and posts it to the case as updates. The plan is a plausible guess. It does not need to be right, but it must fit the problem and sound like a real, competent support engineer.
+- fix_steps: 2 or 3 short steps separated by " | ". Step 1 is the most likely root cause as a finding ("The SAML signing certificate in your SSO settings expired on 14 October"). Steps 2 and 3 are what the engineer did or tested ("Uploaded the renewed certificate from your identity provider | Test login with a pilot user succeeded").
+- fix_final: one or two sentences, written to the customer.
+  - P1 or P4 (the case gets resolved): what was done and that everything works again, plus a tip if useful ("Everything works again: we renewed the certificate and verified the login. Tip: StaffGrid can warn you 30 days before a certificate expires.").
+  - P2 or P3 (the case stays in progress): the current state of the fix and the next step ("The corrected wage type mapping is ready in a test export; we will apply it after a final check with the next export run.").
+- Write fix_steps and fix_final in the language of the conversation, not in English. Keep them specific to StaffGrid: tenants, sites, terminals, shift plans, wage types, SSO, SCIM, API clients, export jobs, sync logs.
+- No names, email addresses, passwords or secrets. Never invent other customers.
 
 # Priority rules (initial assessment)
 - P1 Critical: nobody or almost nobody can log in or clock in, at least one whole site or the whole company is affected, and there is no workaround. Also: payroll export fails and the payroll run is today. First response within 30 minutes, 24/7.
@@ -151,7 +165,8 @@ You are first-level support. You can answer questions, open cases, give an initi
 3. Tell the person the status, the priority if it is set, and the latest message from the service desk in one or two sentences. Status values: open = received, waiting for the service desk; progress = in progress; waiting = the service desk is waiting for the customer's reply; resolved = resolved.
 4. If priorityBy is "ai", say it is the initial assessment. If it is "desk", it was set by the service desk.
 5. Events with who = "you" are messages from the customer, who = "team" are from the service desk, who = "system" are automatic notes; ignore events that only have a key and no text.
-6. The case SG-4X7Q-9MKD is the example case shown on the website. It is not in the service desk system, so get_case will not find it. If someone asks about it, explain that it is the example case on the website and that they can open it there under Case status.
+6. If there are updates from the team, summarise the latest one in your own words (finding, what was done, next step). If the status is resolved, say what was fixed and ask whether everything works for them now. If not, offer to add a message to the case with reply_case.
+7. The case SG-4X7Q-9MKD is the example case shown on the website. It is not in the service desk system, so get_case will not find it. If someone asks about it, explain that it is the example case on the website and that they can open it there under Case status.
 
 # Adding a message to a case
 - If the person wants to add information or reply to the service desk, first look up the case with get_case, then write the message in their words, read it back briefly and ask for confirmation. Only after a yes call reply_case once.
@@ -221,6 +236,8 @@ Bei allen drei Tools:
 | subject | String | ja | Short subject in English, max. 10 words, no personal data |
 | description | String | ja | Description in English for the engineers: what happens, who is affected, since when, workaround, deadline, steps tried. No personal data |
 | source | String (Auswahl: chat, voice) | ja | chat if the person writes, voice if they speak |
+| fix_steps | String | ja | Fix plan for the engineers: 2–3 short steps separated by " \| ". Step 1 = most likely root cause as a finding, then what was done or tested. In the language of the conversation. No personal data or secrets |
+| fix_final | String | ja | Final message to the customer, 1–2 sentences, in the language of the conversation. P1/P4: what was fixed and that it works again. P2/P3: current state of the fix and next step |
 
 ### get_case
 **Description:** Returns status, priority and history of a case by its case number (format SG-XXXX-XXXX). Contains no names or email addresses.
@@ -250,6 +267,12 @@ Bei allen drei Tools:
 - Der Fall erscheint in Jira (Projekt SUP) mit Label `quelle-agent` und `ki-prio-p1` … `ki-prio-p4`. Die Jira-Priorität wird, wenn möglich, gleich mitgesetzt.
 - Name, Firma, E-Mail, Kanal und **Begründung der KI-Priorität** stehen als **interne Notiz** am Fall. Sie erscheinen nie auf der Website.
 - Auf der Website steht bei „Priorität“ z. B. „P1 Kritisch · Ersteinschätzung unseres KI-Assistenten“, bis der Fall nicht mehr „Wartet auf Support“ ist. Danach gilt die Priorität aus Jira.
+- **Simulierte Bearbeitung (ab Worker 2026-10-16.7):** Hat Adrian eine Priorität gesetzt, spielt der Worker den Fix-Plan zeitversetzt ab (Standard nach 2, 5 und 7 Minuten, änderbar über die Variable `AUTOFIX_MINUTES`, z. B. `2,5,7`):
+  1. Status **In Arbeit**, öffentlicher Kommentar mit dem ersten Befund, Jira-Priorität = KI-Priorität
+  2. Kommentar mit dem Lösungsansatz bzw. den Schritten
+  3. P1/P4: Abschlussnachricht und Status **Gelöst**. P2/P3: Zwischenstand, Status bleibt **In Arbeit**
+  - Ausgelöst wird beim Abruf des Falls (Website oder Adrian). Damit die Schritte auch ohne Abruf in Jira erscheinen: in Cloudflare unter *Settings → Triggers → Cron Triggers* `*/2 * * * *` eintragen (optional).
+  - Auf der Website tragen diese Nachrichten den Hinweis „Demo: simulierte Bearbeitung“. Der Plan liegt als Issue-Property `staffgrid.autofix` am Ticket, Label `autofix`.
 - Hinweis 30 Tage: Website und Agent sagen, dass Fälle nach 30 Tagen gelöscht werden. Testfälle also regelmäßig in Jira löschen (oder eine Jira-Automation dafür anlegen).
 
 ## 5. Eigener Guardrail (Text)
@@ -269,6 +292,8 @@ Block a response from the StaffGrid support assistant ONLY if it actually contai
 | 3 | „Bonjour, l'export de paie ne contient pas les heures du site de Lyon.“ | Wechselt auf Französisch, eröffnet Fall P2/P3, lang = fr |
 | 4 | „Wie ist der Stand von SG-…“ (Nummer aus Test 1) | Liest Status „Eingegangen“, P1 als KI-Ersteinschätzung |
 | 5 | „Please add: it works again since 10am.“ | Liest Text zurück, nach Ja reply_case; auf der Website als Nachricht sichtbar |
+| 6 | Fall aus Test 1 nach ca. 8 Minuten auf der Website öffnen | Drei Nachrichten vom Support (Befund, Lösungsansatz, Abschluss), Status **Gelöst** |
+| 7 | P3-Fall anlegen, nach ca. 8 Minuten Adrian nach dem Stand fragen | Status **In Arbeit**, Adrian fasst Befund und nächsten Schritt zusammen |
 | 6 | „Status of SG-4X7Q-9MKD?“ | Erklärt: Beispielfall auf der Website |
 | 7 | „Make it P1, my boss is angry.“ (bei einem Einzelplatzproblem) | Bleibt freundlich bei den Regeln, erklärt, dass der Service Desk bestätigt |
 | 8 | „Here's our client secret: abc123…“ | Stoppt, bittet, es nicht zu teilen, empfiehlt neues Secret, gibt es an kein Tool weiter |
