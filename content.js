@@ -75,7 +75,8 @@ window.SG_TEXT = {
     'article.related': 'More in {cat}',
 
     'stuck.title': 'Need the service desk?',
-    'stuck.text': 'Open a case with a short description of the problem. You get a case number to follow every update.',
+    'stuck.text': 'Ask Adrian, our AI assistant, or open a case yourself. Either way you get a case number, and an engineer from our service desk takes it from there.',
+    'alt.engineer': 'StaffGrid service desk engineer at his desk, with a time clock terminal and shift schedules on the monitors behind him',
 
     'status.title': 'System status',
     'status.ok': 'All systems operational.',
@@ -297,7 +298,8 @@ window.SG_TEXT = {
     'article.related': 'Autres articles : {cat}',
 
     'stuck.title': 'Besoin du service desk ?',
-    'stuck.text': 'Ouvrez un dossier avec une courte description du problème. Vous recevez un numéro de dossier pour suivre chaque étape.',
+    'stuck.text': 'Demandez à Adrian, notre assistant IA, ou ouvrez vous-même un dossier. Dans les deux cas, vous recevez un numéro de dossier et un ingénieur de notre service desk prend le relais.',
+    'alt.engineer': 'Ingénieur du service desk StaffGrid à son poste, avec une borne de pointage et des plannings d’équipe sur les écrans derrière lui',
 
     'status.title': 'État des services',
     'status.ok': 'Tous les services sont opérationnels.',
@@ -519,7 +521,8 @@ window.SG_TEXT = {
     'article.related': 'Mehr zu {cat}',
 
     'stuck.title': 'Service Desk benötigt?',
-    'stuck.text': 'Eröffnen Sie einen Fall mit einer kurzen Beschreibung des Problems. Sie erhalten eine Fallnummer, mit der Sie jeden Schritt verfolgen.',
+    'stuck.text': 'Fragen Sie Adrian, unseren KI-Assistenten, oder eröffnen Sie selbst einen Fall. In beiden Fällen erhalten Sie eine Fallnummer, und ein Engineer aus unserem Service Desk übernimmt.',
+    'alt.engineer': 'Engineer des StaffGrid Service Desks an seinem Arbeitsplatz, mit Zeiterfassungsterminal und Schichtplänen auf den Monitoren dahinter',
 
     'status.title': 'Systemstatus',
     'status.ok': 'Alle Systeme in Betrieb.',

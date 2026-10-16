@@ -14,7 +14,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='14' fill='%231C2228'/%3E%3Crect x='12' y='17' width='28' height='7' rx='3.5' fill='%23fff'/%3E%3Crect x='20' y='29' width='32' height='7' rx='3.5' fill='%239DB7D3'/%3E%3Crect x='12' y='41' width='22' height='7' rx='3.5' fill='%23fff'/%3E%3Crect x='36' y='11' width='4' height='43' rx='2' fill='%23FF7A1A'/%3E%3C/svg%3E">
 <link rel="preload" href="fonts/sg-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/sg-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
@@ -132,12 +132,13 @@
     </section>
 
     <section class="stuck">
-      <figure class="stuck-photo"><img src="img/support-team-1600.webp" srcset="img/support-team-800.webp 800w, img/support-team-1600.webp 1600w" sizes="(max-width: 960px) 100vw, 440px" width="1600" height="1067" alt="" data-i18n-alt="alt.support" loading="lazy"></figure>
+      <figure class="stuck-photo"><img src="img/service-desk-engineer-1024.webp" srcset="img/service-desk-engineer-800.webp 800w, img/service-desk-engineer-1024.webp 1024w" sizes="(max-width: 960px) 100vw, 520px" width="1024" height="1024" alt="" data-i18n-alt="alt.engineer" loading="lazy"></figure>
       <div class="stuck-body">
         <h2 data-i18n="stuck.title">Need the service desk?</h2>
         <p data-i18n="stuck.text"></p>
         <div class="stuck-actions">
-          <a class="btn" href="#/new" data-i18n="nav.new">Open a case</a>
+          <button type="button" class="btn" data-agent="call" data-i18n="agent.call">Talk to Adrian</button>
+          <a class="btn ghost" href="#/new" data-i18n="nav.new">Open a case</a>
           <a class="btn ghost" href="#/track" data-i18n="nav.track">Case status</a>
         </div>
       </div>
@@ -281,7 +282,7 @@
 <elevenlabs-convai id="adrianWidget" agent-id="agent_5701m52nfb4seg4960zs4v308034"></elevenlabs-convai>
 <script src="https://unpkg.com/@elevenlabs/convai-widget-embed@0.19.0" async type="text/javascript"></script>
 
-<script src="content.js?v=7"></script>
+<script src="content.js?v=8"></script>
 <script src="app.js?v=10"></script>
 </body>
 </html>
