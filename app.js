@@ -13,10 +13,6 @@
   const LANGS = ['en', 'fr', 'de'];
   const LOCALE = { en: 'en-GB', fr: 'fr-FR', de: 'de-DE' };
   const TZ = 'Europe/Berlin';
-  const PRIOS = [
-    { id: 'p1', c: '#B42318' }, { id: 'p2', c: '#FF7A1A' },
-    { id: 'p3', c: '#2F5D8A' }, { id: 'p4', c: '#9AA2AC' }
-  ];
   // Servicezeiten (Mo=0 … So=6) in Europe/Berlin; null = geschlossen
   const HOURS = [[7, 20], [7, 20], [7, 20], [7, 20], [7, 20], [8, 14], null];
   const STORE = 'sg_cases_v1';
@@ -53,7 +49,7 @@
     $$('[data-i18n-alt]').forEach(el => { el.alt = t(el.dataset.i18nAlt); });
     $$('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
     buildCategorySelect();
-    buildPriorities();
+    buildSla();
     buildStatus();
     buildRota();
     buildProduct();
@@ -114,7 +110,7 @@
       else track.append(el('span', { class: 'rota-closed' }, t('rota.closed')));
       grid.append(el('div', { class: 'rota-day' + (i === now.day ? ' today' : '') }, days[i]), track);
     });
-    grid.append(el('div'), el('div', { class: 'rota-axis' }, ['00', '06', '12', '18', '24'].map(x => el('span', null, x))));
+    grid.append(el('div'), el('div', { class: 'rota-axis' }, ['00', '06', '12', '18', '24'].map(x => el('span', null, x)))); // taste-skill-ignore: Stundenachse der Uhr (00-24), keine Aufzaehlung
     grid.append(el('div', { class: 'rota-now', style: `left:calc(2.6rem + (100% - 2.6rem) * ${now.h / 24})` }, el('span', null, t('rota.now'))));
     if (quiet) $$('.rota-shift, .rota-now', grid).forEach(n => { n.style.animation = 'none'; });
 
@@ -133,6 +129,46 @@
       $('#rotaStateText').textContent = t('rota.offline', { time: label });
     }
     $('#rotaHours').textContent = `${days[0]}–${days[4]} 07:00–20:00, ${days[5]} 08:00–14:00. ${t('rota.tz')}.`;
+    buildHero(online, now, quiet);
+  }
+
+  // Die Schlagzeile sagt, was gerade gilt, und zaehlt bis zum naechsten Wechsel.
+  function buildHero(online, now, quiet) {
+    const line = $('#heroLine'); if (!line) return;
+    const days = t('rota.days');
+    const text = online ? t('hero.open') : t('hero.closed');
+    if (line.dataset.text !== text) {
+      line.dataset.text = text;
+      line.textContent = '';
+      // Zeilen selbst umbrechen, damit jede fuer sich aus ihrer Maske steigt
+      text.split(' ').reduce((rows, w) => {
+        const r = rows[rows.length - 1];
+        if (r && (r.join(' ') + ' ' + w).length <= 16) r.push(w); else rows.push([w]);
+        return rows;
+      }, []).forEach((row, i) => {
+        const outer = el('span', { class: 'hl-line' });
+        const inner = el('span', { style: `--d:${i * 110}ms` }, row.join(' '));
+        outer.append(inner); line.append(outer);
+      });
+      if (quiet) $$('.hl-line > span', line).forEach(n => { n.style.animation = 'none'; });
+    }
+    $('#heroSub').textContent = t('hero.sub');
+
+    // Rest bis Feierabend bzw. bis zur naechsten Oeffnung
+    let mins;
+    if (online) mins = Math.round((HOURS[now.day][1] - now.h) * 60);
+    else {
+      let d = now.day, acc = 0;
+      for (let k = 0; k < 8; k++) {
+        const sp = HOURS[d];
+        if (sp && !(k === 0 && now.h >= sp[0])) { acc += (k === 0 ? sp[0] - now.h : sp[0]); break; }
+        acc += (k === 0 ? 24 - now.h : 24);
+        d = (d + 1) % 7;
+      }
+      mins = Math.round(acc * 60);
+    }
+    const h = Math.floor(mins / 60), m = mins % 60;
+    $('#heroCount').textContent = t(online ? 'hero.until' : 'hero.opens', { h: String(h), m: String(m) });
   }
 
   /* ---------- Bilder ---------- */
@@ -234,7 +270,6 @@
     const others = ARTICLES.filter(o => o.cat === a.cat && o.id !== a.id);
     const pic = ARTICLE_IMG[a.id] || (CAT_IMG[a.cat] && MODULE_IMG[CAT_IMG[a.cat]]);
     box.append(
-      el('p', { class: 'crumb' }, t('cat.' + a.cat)),
       el('h1', null, x.t),
       el('p', { class: 'lead' }, x.s),
       pic ? el('figure', { class: 'page-photo' }, photo(pic[0], pic[1])) : null,
@@ -262,19 +297,34 @@
   }
 
   /* ---------- Formular ---------- */
+  // P1-P4 als Ziffernspalte: die Zahl gross, die Einheit daneben
+  const SLA = [
+    { id: 'p1', n: '30', u: 'sla.u.min', hint: 'sla.h.p1' },
+    { id: 'p2', n: '2', u: 'sla.u.hours', hint: 'sla.h.p2' },
+    { id: 'p3', n: '1', u: 'sla.u.day', hint: 'sla.h.p3' },
+    { id: 'p4', n: '2', u: 'sla.u.days', hint: 'sla.h.p4' }
+  ];
+  function buildSla() {
+    const box = $('#slaList'); if (!box) return;
+    box.textContent = '';
+    SLA.forEach(x => {
+      box.append(el('div', { class: 'sla-row' },
+        el('dt', null,
+          el('span', { class: 'sla-p' }, t('p.' + x.id)),
+          el('span', { class: 'sla-hint' }, t(x.hint))),
+        el('dd', { class: 'sla-fig' },
+          el('span', { class: 'sla-n' }, x.n),
+          ' ',
+          el('span', { class: 'sla-u' }, t(x.u)))));
+    });
+  }
+
   function buildCategorySelect() {
     const s = $('#f_category'), cur = s.value;
     s.textContent = '';
     s.append(el('option', { value: '' }, t('f.category.choose')));
     CATS.forEach(c => s.append(el('option', { value: c }, t('cat.' + c))));
     s.value = cur;
-  }
-  function buildPriorities() {
-    const box = $('#prioList'), cur = (box.querySelector('input:checked') || {}).value || 'p3';
-    box.textContent = '';
-    PRIOS.forEach(p => box.append(el('div', { class: 'prio-opt', style: '--c:' + p.c },
-      el('input', { type: 'radio', name: 'priority', id: 'p_' + p.id, value: p.id, checked: p.id === cur }),
-      el('label', { for: 'p_' + p.id }, t('p.' + p.id), el('small', null, t('p.' + p.id + '.d'))))));
   }
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   function setErr(id, key) {
@@ -346,8 +396,8 @@
       if (SG_CONFIG.apiUrl) return (await post('create_case', d)).case;
       const now = new Date().toISOString(), list = load();
       let id; do { id = newCaseId(); } while (list.some(x => x.id === id) || id === EXAMPLE_ID);
-      const c = { id, name: d.name, email: d.email, company: d.company, tenant: d.tenant,
-        category: d.category, priority: d.priority, subject: d.subject, status: 'open', created: now, updated: now,
+      const c = { id, name: d.name, email: d.email, company: d.company,
+        category: d.category, priority: '', subject: d.subject, status: 'open', created: now, updated: now,
         events: [{ who: 'you', text: d.description, at: now }, { who: 'system', key: 'ev.auto', at: now }] };
       list.push(c); save(list);
       return publicView(c);
@@ -387,7 +437,7 @@
       el('h1', null, subject),
       el('dl', { class: 't-meta' },
         el('div', null, el('dt', null, t('t.category')), el('dd', null, t('cat.' + c.category))),
-        el('div', null, el('dt', null, t('t.priority')), el('dd', null, t('p.' + c.priority))),
+        el('div', null, el('dt', null, t('t.priority')), el('dd', null, c.priority ? t('p.' + c.priority) : t('t.priority.pending'))),
         el('div', null, el('dt', null, t('t.created')), el('dd', null, fmtDate(c.created))),
         el('div', null, el('dt', null, t('t.updated')), el('dd', null, fmtDateTime(c.updated)))),
       el('p', { class: 'hint t-privacy' }, t('t.privacy')),
@@ -504,8 +554,7 @@
       const v = n => form.elements[n].value.trim();
       try {
         const c = await api.create({
-          name: v('name'), email: v('email'), company: v('company'), tenant: v('tenant'), category: v('category'),
-          priority: (form.querySelector('input[name=priority]:checked') || {}).value || 'p3',
+          name: v('name'), email: v('email'), company: v('company'), category: v('category'),
           subject: v('subject'), description: v('description'), source: 'Website'
         });
         current = c;
@@ -524,13 +573,47 @@
       catch (e) { const r = document.createRange(); r.selectNodeContents($('#doneId')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
     });
     $('#doneAnother').addEventListener('click', () => {
-      form.reset(); buildPriorities(); form.hidden = false; $('#ticketDone').hidden = true; $('#f_name').focus();
+      form.reset(); form.hidden = false; $('#ticketDone').hidden = true; $('#f_name').focus();
     });
 
     $('#trackForm').addEventListener('submit', e => { e.preventDefault(); openCase($('#t_id').value); });
     $('#trackExample').addEventListener('click', () => { $('#t_id').value = EXAMPLE_ID; openCase(EXAMPLE_ID); });
 
     setInterval(() => buildRota(true), 60000);
+
+    buildRise();
+    buildClip();
+  }
+
+  // Nachtclip: laedt erst im Bild, laeuft einmal und bleibt auf dem letzten Bild stehen.
+  function buildClip() {
+    const v = $('.sla-video');
+    if (!v || !('IntersectionObserver' in window)) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    v.addEventListener('playing', () => v.classList.add('on'), { once: true });
+    new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting) {
+        if (!v.src) v.src = v.dataset.src;
+        if (!v.ended) v.play().catch(() => {});
+      } else if (!v.paused) v.pause();
+    }), { threshold: 0.5 }).observe(v);
+  }
+
+  // Jeder Abschnitt laesst seine Teile nacheinander einsteigen.
+  function buildRise() {
+    const parts = $$('main section > h2, main section > .lead, main section > p, main figure, .ind, .module, .sla-row, .topic, .narrow > h1, .narrow > .lead, .form, .track-form');
+    parts.forEach(n => n.setAttribute('data-rise', ''));
+    if (!('IntersectionObserver' in window)) { parts.forEach(n => n.classList.add('in')); return; }
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.filter(e => e.isIntersecting).forEach(e => {
+        const sect = e.target.closest('section, main') || document;
+        const peers = $$('[data-rise]', sect).filter(n => !n.classList.contains('in'));
+        e.target.style.setProperty('--d', Math.min(peers.indexOf(e.target), 5) * 80 + 'ms');
+        e.target.classList.add('in');
+        obs.unobserve(e.target);
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
+    parts.forEach(n => io.observe(n));
   }
 
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();

@@ -1,0 +1,11 @@
+# Projektübergabe / interne Notizen – nicht ins öffentliche Repo
+CLAUDE.md
+
+# macOS
+.DS_Store
+
+# Arbeitsdateien des Taste-Skills (Screenshots, Direction)
+.taste-skill/
+
+# Lokaler Schluesselordner – nie ins oeffentliche Repo
+API/

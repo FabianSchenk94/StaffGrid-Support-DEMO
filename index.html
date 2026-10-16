@@ -14,7 +14,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='14' fill='%231C2228'/%3E%3Crect x='12' y='17' width='28' height='7' rx='3.5' fill='%23fff'/%3E%3Crect x='20' y='29' width='32' height='7' rx='3.5' fill='%239DB7D3'/%3E%3Crect x='12' y='41' width='22' height='7' rx='3.5' fill='%23fff'/%3E%3Crect x='36' y='11' width='4' height='43' rx='2' fill='%23FF7A1A'/%3E%3C/svg%3E">
 <link rel="preload" href="fonts/sg-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/sg-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
@@ -46,17 +46,13 @@
   <div class="view" data-view="help">
     <section class="hero">
       <div class="hero-text">
-        <h1 data-i18n="hero.title">Support for admins running the StaffGrid Workforce Cloud.</h1>
-        <p class="lead" data-i18n="hero.lead"></p>
-        <form class="search" id="searchForm" role="search">
-          <label class="sr" for="q" data-i18n="search.label">Search the knowledge base</label>
-          <svg class="search-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <input id="q" name="q" type="search" autocomplete="off" data-i18n-ph="search.placeholder">
-          <button type="submit" class="btn" data-i18n="search.button">Search</button>
-        </form>
+        <h1 id="heroTitle"><span class="hl" id="heroLine"></span></h1>
+        <p class="hero-sub" id="heroSub"></p>
+        <p class="hero-count" id="heroCount"></p>
       </div>
 
-      <aside class="rota" aria-labelledby="rotaTitle">
+      <!-- Das arbeitende Fragment: Servicezeiten als Schichtplan, orange Jetzt-Linie live -->
+      <aside class="rota" data-ui aria-labelledby="rotaTitle">
         <div class="rota-head">
           <h2 id="rotaTitle" data-i18n="rota.title">Service desk hours</h2>
           <p class="rota-state" id="rotaState"><span class="dot" aria-hidden="true"></span><span id="rotaStateText"></span></p>
@@ -65,6 +61,15 @@
         <p class="rota-p1"><span class="p1-line" aria-hidden="true"></span><span data-i18n="rota.p1"></span></p>
         <p class="rota-tz" id="rotaHours"></p>
       </aside>
+    </section>
+
+    <section class="finder" aria-labelledby="finderTitle">
+      <h2 id="finderTitle" data-i18n="finder.title">Find your answer</h2>
+      <form class="search" id="searchForm" role="search">
+        <label class="sr" for="q" data-i18n="search.label">Search the knowledge base</label>
+        <input id="q" name="q" type="search" autocomplete="off" data-i18n-ph="search.placeholder">
+        <button type="submit" class="btn" data-i18n="search.button">Search</button>
+      </form>
     </section>
 
     <figure class="band"><img src="img/hero-werkhalle-1600.webp" srcset="img/hero-werkhalle-800.webp 800w, img/hero-werkhalle-1600.webp 1600w" sizes="(max-width: 1168px) 100vw, 1072px" width="1600" height="1067" alt="" data-i18n-alt="alt.hero" fetchpriority="high"></figure>
@@ -83,7 +88,7 @@
         <p class="lead" data-i18n="product.lead"></p>
       </div>
       <div class="product-body">
-        <figure class="mock" aria-hidden="true">
+        <figure class="mock" data-ui aria-hidden="true">
           <div class="mock-bar"><span></span><span></span><span></span></div>
           <div class="mock-head"><strong id="mockTitle"></strong><span class="mock-legend" id="mockLegend"></span></div>
           <div class="mock-grid" id="mockGrid"></div>
@@ -93,8 +98,17 @@
       <p class="hosting" data-i18n="product.hosting"></p>
     </section>
 
+    <section class="sla" aria-labelledby="slaTitle">
+      <div class="sla-intro">
+        <h2 id="slaTitle" data-i18n="sla.title">We answer on the clock.</h2>
+        <p class="lead" data-i18n="sla.lead"></p>
+        <figure class="sla-photo"><img src="img/nacht-pflege-wide-1280.webp" srcset="img/nacht-pflege-wide-800.webp 800w, img/nacht-pflege-wide-1280.webp 1280w" sizes="(max-width: 860px) 100vw, 520px" width="1280" height="720" alt="" data-i18n-alt="alt.night" loading="lazy"><video class="sla-video" data-src="video/nacht-pflege.mp4" muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video></figure>
+      </div>
+      <dl class="sla-list" id="slaList"></dl>
+    </section>
+
     <section class="industries" aria-labelledby="indTitle">
-      <h2 id="indTitle" data-i18n="ind.title">In use across industries</h2>
+      <h2 id="indTitle" data-i18n="ind.kicker">Where the shifts run</h2>
       <p class="lead" data-i18n="ind.lead"></p>
       <div class="ind-grid">
         <figure class="ind"><img src="img/branche-industrie-1600.webp" srcset="img/branche-industrie-800.webp 800w, img/branche-industrie-1600.webp 1600w" sizes="(max-width: 720px) 100vw, (max-width: 960px) 50vw, 260px" width="1600" height="1067" alt="" data-i18n-alt="alt.food" loading="lazy">
@@ -118,7 +132,7 @@
     </section>
 
     <section class="stuck">
-      <figure class="stuck-photo"><img src="img/support-team-1600.webp" srcset="img/support-team-800.webp 800w, img/support-team-1600.webp 1600w" sizes="(max-width: 960px) 100vw, 440px" width="1600" height="1067" alt="" data-i18n-alt="alt.support" loading="lazy"><figcaption data-i18n="support.photo"></figcaption></figure>
+      <figure class="stuck-photo"><img src="img/support-team-1600.webp" srcset="img/support-team-800.webp 800w, img/support-team-1600.webp 1600w" sizes="(max-width: 960px) 100vw, 440px" width="1600" height="1067" alt="" data-i18n-alt="alt.support" loading="lazy"></figure>
       <div class="stuck-body">
         <h2 data-i18n="stuck.title">Need the service desk?</h2>
         <p data-i18n="stuck.text"></p>
@@ -152,7 +166,7 @@
   <div class="view narrow" data-view="new" hidden>
     <h1 data-i18n="new.title">Open a case</h1>
     <p class="lead" data-i18n="new.lead"></p>
-    <figure class="page-photo"><img src="img/kontakt-meeting-1600.webp" srcset="img/kontakt-meeting-800.webp 800w, img/kontakt-meeting-1600.webp 1600w" sizes="(max-width: 800px) 100vw, 760px" width="1600" height="1067" alt="" data-i18n-alt="alt.meeting" loading="lazy"></figure>
+    <figure class="page-photo"><img src="img/fall-terminal-offline-1600.webp" srcset="img/fall-terminal-offline-800.webp 800w, img/fall-terminal-offline-1600.webp 1600w" sizes="(max-width: 800px) 100vw, 760px" width="1600" height="1067" alt="" data-i18n-alt="alt.offline" loading="lazy"></figure>
 
     <form id="ticketForm" class="form" novalidate>
       <p class="form-alert" id="formAlert" role="alert" hidden></p>
@@ -168,17 +182,10 @@
           <p class="err" id="e_email"></p>
         </div>
       </div>
-      <div class="row2">
-        <div class="field">
-          <label for="f_company" data-i18n="f.company">Company</label>
-          <input id="f_company" name="company" autocomplete="organization" maxlength="100" required>
-          <p class="err" id="e_company"></p>
-        </div>
-        <div class="field">
-          <label for="f_tenant" data-i18n="f.tenant">Tenant ID</label>
-          <input id="f_tenant" name="tenant" maxlength="40" aria-describedby="h_tenant" autocomplete="off">
-          <p class="hint" id="h_tenant" data-i18n="f.tenant.h"></p>
-        </div>
+      <div class="field">
+        <label for="f_company" data-i18n="f.company">Company</label>
+        <input id="f_company" name="company" autocomplete="organization" maxlength="100" required>
+        <p class="err" id="e_company"></p>
       </div>
       <div class="field">
         <label for="f_category" data-i18n="f.category">Topic</label>
@@ -186,10 +193,7 @@
         <p class="err" id="e_category"></p>
       </div>
 
-      <fieldset class="field prio">
-        <legend data-i18n="f.priority">Priority</legend>
-        <div class="prio-list" id="prioList"></div>
-      </fieldset>
+      <p class="hint form-note" data-i18n="f.priority.note"></p>
 
       <div class="field">
         <label for="f_subject" data-i18n="f.subject">Subject</label>
@@ -260,7 +264,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="content.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="content.js?v=5"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
