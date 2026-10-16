@@ -8,12 +8,17 @@
  * Optional:
  *   ISSUE_TYPE  (Text)    – Name des Vorgangstyps, falls die automatische Wahl nicht passt
  *
+ *   AUTOFIX_MINUTES (Text) – Zeitplan der simulierten Bearbeitung in Minuten, Standard "2,5,7"
+ *
  * Aktionen (POST, JSON): create_case, get_case, reply_case
+ * Simulierte Bearbeitung (Demo): Legt der Agent einen Fall mit fix_steps/fix_final an, spielt der Worker
+ * zeitversetzt Kommentare und Statuswechsel ab (P1/P4 → gelöst, P2/P3 → in Arbeit mit Lösungsansatz).
+ * Fällige Schritte laufen beim Abruf des Falls; optional zusätzlich per Cron Trigger (z. B. alle 2 Minuten).
  * Mit gültigem agent_key darf der Agent zusätzlich eine Priorität (p1–p4) als KI-Ersteinschätzung setzen.
  * Prüfung: GET /check  → zeigt, ob Jira erreichbar ist (keine persönlichen Daten)
  */
 
-const VERSION = '2026-10-16.6';
+const VERSION = '2026-10-16.7';
 const JIRA_SITE = 'https://staffgrid-support.atlassian.net';
 const PROJECT = 'SUP';
 const ALLOWED_ORIGINS = [
@@ -28,6 +33,8 @@ const PRIO = { highest: 'p1', high: 'p2', medium: 'p3', low: 'p4', lowest: 'p4' 
 const PRIO_BY_ID = { '1': 'p1', '2': 'p2', '3': 'p3', '4': 'p4', '5': 'p4' };
 const JIRA_PRIO_ID = { p1: '1', p2: '2', p3: '3', p4: '4' };
 const PORTAL_PROP = 'staffgrid.portal';
+const FIX_PROP = 'staffgrid.autofix';
+const FIX_LABEL = 'autofix';
 
 /* ---------- Bremse (pro Worker-Instanz, für ein Demo ausreichend) ---------- */
 const hits = new Map();
@@ -155,7 +162,9 @@ async function toCase(env, issue, id) {
   const deskPrio = PRIO_BY_ID[String((f.priority && f.priority.id) || '')] ||
     PRIO[String((f.priority && f.priority.name) || '').toLowerCase()] || '';
   let priority = '', priorityBy = '';
-  if (status !== 'open' && deskPrio) { priority = deskPrio; priorityBy = 'desk'; }
+  const sim = (f.labels || []).includes(FIX_LABEL);
+  if (sim && aiPrio) { priority = aiPrio; priorityBy = status === 'open' ? 'ai' : 'desk'; }   // simulierter Desk bestätigt die KI-Priorität
+  else if (status !== 'open' && deskPrio) { priority = deskPrio; priorityBy = 'desk'; }
   else if (aiPrio) { priority = aiPrio; priorityBy = 'ai'; }
 
   const events = [
@@ -169,9 +178,14 @@ async function toCase(env, issue, id) {
     const internal = c.jsdPublic === false || (sd && sd.value && sd.value.internal === true);
     if (internal) continue;                                   // interne Notizen nie zeigen
     const fromPortal = props.some(p => p.key === PORTAL_PROP);
+    const fx = props.find(p => p.key === FIX_PROP);
     const text = adfText(c.body);
-    if (text) events.push({ who: fromPortal ? 'you' : 'team', text, at: c.created });
+    if (!text) continue;
+    const ev = { who: fromPortal ? 'you' : 'team', text, at: (fx && fx.value && fx.value.at) || c.created };
+    if (fx) ev.sim = true;
+    events.push(ev);
   }
+  events.sort((a, b) => String(a.at).localeCompare(String(b.at)));
   return { id, category: cat, priority, priorityBy, status, subject: f.summary, created: f.created, updated: f.updated, events };
 }
 
@@ -205,6 +219,8 @@ async function createCase(env, d, isAgent) {
 
   const labels = ['fall-' + id, 'thema-' + category, isAgent ? 'quelle-agent' : 'quelle-website', 'sprache-' + lang];
   if (aiPrio) labels.push('ki-prio-' + aiPrio);
+  const plan = isAgent && aiPrio ? makePlan(d, aiPrio, lang) : null;
+  if (plan) labels.push(FIX_LABEL);
   const fields = {
     project: { key: PROJECT },
     issuetype: { id: await issueTypeId(env) },
@@ -229,6 +245,10 @@ async function createCase(env, d, isAgent) {
     body: toAdf(note),
     properties: [{ key: 'sd.public.comment', value: { internal: true } }]
   });
+  if (plan) {
+    try { await jira(env, 'PUT', '/rest/api/3/issue/' + created.id + '/properties/' + FIX_PROP, plan); }
+    catch (e) { console.log('Plan nicht gespeichert', e.status); }
+  }
   const issue = await findIssueById(env, created.id);
   return { case: await toCase(env, issue, id) };
 }
@@ -238,8 +258,9 @@ async function findIssueById(env, issueId) {
 async function getCase(env, d) {
   const id = normCaseId(d.id);
   if (!id) return { error: 'format', code: 400 };
-  const issue = await findIssue(env, id);
+  let issue = await findIssue(env, id);
   if (!issue) return { error: 'not_found', code: 404 };
+  if (await advance(env, issue)) issue = await findIssueById(env, issue.id);
   return { case: await toCase(env, issue, id) };
 }
 async function replyCase(env, d) {
@@ -248,6 +269,7 @@ async function replyCase(env, d) {
   if (!id || !text) return { error: 'invalid', code: 400 };
   const issue = await findIssue(env, id);
   if (!issue) return { error: 'not_found', code: 404 };
+  await advance(env, issue);
   await jira(env, 'POST', '/rest/api/3/issue/' + issue.id + '/comment', {
     body: toAdf(text),
     properties: [
@@ -258,9 +280,139 @@ async function replyCase(env, d) {
   return { case: await toCase(env, await findIssueById(env, issue.id), id) };
 }
 
+/* ---------- Simulierte Bearbeitung (Demo) ----------
+ * Adrian liefert beim Anlegen 1–3 Arbeitsschritte (fix_steps) und eine Abschlussnachricht (fix_final).
+ * Der Plan liegt als Issue-Property am Ticket und wird zeitversetzt abgespielt:
+ *   Stufe 1: Status „In Arbeit“ + Befund   Stufe 2: Lösungsansatz   Stufe 3: Abschluss (P1/P4 gelöst, P2/P3 Zwischenstand)
+ */
+const FIX_TEXT = {
+  en: {
+    s1: 'Hi, this is the StaffGrid support team. We have picked up your case and started the analysis.\n\nFirst finding: {x}',
+    s2: 'Update: we are working on the fix.\n{x}',
+    s2gen: 'We are now testing the fix in a staging tenant before applying it to your environment.',
+    done: '{x}\n\nWe are closing this case. If anything still does not work, just reply here and we will pick it up again.',
+    prog: '{x}\n\nWe are staying on it and will post the next update here.',
+    gen1: 'We checked the configuration and the logs of your tenant and narrowed the problem down.',
+    genDone: 'Everything is working again. We applied the fix and verified it with a test run.',
+    genProg: 'The fix is prepared and currently being verified by our team.',
+    sign: '\n\n– StaffGrid Support'
+  },
+  de: {
+    s1: 'Hallo, hier ist das StaffGrid-Support-Team. Wir haben Ihren Fall übernommen und mit der Analyse begonnen.\n\nErster Befund: {x}',
+    s2: 'Update: Wir arbeiten an der Lösung.\n{x}',
+    s2gen: 'Wir testen die Lösung gerade in einem Test-Mandanten, bevor wir sie in Ihrer Umgebung einspielen.',
+    done: '{x}\n\nWir schließen den Fall. Falls noch etwas nicht passt, antworten Sie einfach hier – wir kümmern uns sofort darum.',
+    prog: '{x}\n\nWir bleiben dran und melden uns hier mit dem nächsten Stand.',
+    gen1: 'Wir haben die Konfiguration und die Protokolle Ihres Mandanten geprüft und das Problem eingegrenzt.',
+    genDone: 'Hier geht wieder alles. Wir haben die Korrektur eingespielt und mit einem Testlauf bestätigt.',
+    genProg: 'Die Korrektur ist vorbereitet und wird gerade von unserem Team geprüft.',
+    sign: '\n\n– StaffGrid Support'
+  },
+  fr: {
+    s1: 'Bonjour, ici l’équipe support StaffGrid. Nous avons pris en charge votre dossier et commencé l’analyse.\n\nPremier constat : {x}',
+    s2: 'Mise à jour : nous travaillons sur la solution.\n{x}',
+    s2gen: 'Nous testons actuellement la correction dans un tenant de test avant de l’appliquer à votre environnement.',
+    done: '{x}\n\nNous clôturons ce dossier. Si quelque chose ne fonctionne toujours pas, répondez simplement ici.',
+    prog: '{x}\n\nNous restons dessus et publierons la prochaine mise à jour ici.',
+    gen1: 'Nous avons vérifié la configuration et les journaux de votre tenant et cerné le problème.',
+    genDone: 'Tout fonctionne à nouveau. Nous avons appliqué la correction et l’avons vérifiée par un test.',
+    genProg: 'La correction est prête et en cours de vérification par notre équipe.',
+    sign: '\n\n– Support StaffGrid'
+  }
+};
+function fixMinutes(env) {
+  const m = String((env && env.AUTOFIX_MINUTES) || '2,5,7').split(',').map(Number).filter(n => n >= 0);
+  return m.length === 3 ? m : [2, 5, 7];
+}
+function makePlan(d, prio, lang) {
+  let steps = Array.isArray(d.fix_steps) ? d.fix_steps : String(d.fix_steps || '').split(/\r?\n|\s\|\s|\|/);
+  steps = steps.map(x => clip(x, 400).replace(/^[-•*\d.)\s]+/, '')).filter(Boolean).slice(0, 3);
+  return {
+    v: 1, lang, prio,
+    mode: prio === 'p1' || prio === 'p4' ? 'resolve' : 'progress',
+    steps, final: clip(d.fix_final, 800),
+    start: Date.now(), done: 0
+  };
+}
+function stageText(plan, n) {
+  const T = FIX_TEXT[plan.lang] || FIX_TEXT.en;
+  const fill = (tpl, x) => tpl.replace('{x}', x) + T.sign;
+  if (n === 1) return fill(T.s1, plan.steps[0] || T.gen1);
+  if (n === 2) return fill(T.s2, plan.steps.length > 1 ? plan.steps.slice(1).map(s => '• ' + s).join('\n') : T.s2gen);
+  return plan.mode === 'resolve' ? fill(T.done, plan.final || T.genDone) : fill(T.prog, plan.final || T.genProg);
+}
+async function transitionTo(env, issueId, want) {
+  const r = await jira(env, 'GET', '/rest/api/3/issue/' + issueId + '/transitions?expand=transitions.fields');
+  const list = (r && r.transitions) || [];
+  const cat = t => (t.to && t.to.statusCategory && t.to.statusCategory.key) || '';
+  const nm = t => ((t.to && t.to.name) || '') + ' ' + (t.name || '');
+  let tr;
+  if (want === 'done') {
+    const done = list.filter(t => cat(t) === 'done');
+    tr = done.find(t => /gelöst|resolv|erledigt|done|fertig/i.test(nm(t))) || done.find(t => !/cancel|abbrech|declin|ablehn|reject/i.test(nm(t))) || done[0];
+  } else {
+    tr = list.find(t => cat(t) === 'indeterminate' && /progress|arbeit|bearbeitung/i.test(nm(t))) ||
+         list.find(t => cat(t) === 'indeterminate' && !/customer|kunde|pending|ausstehend|approv|genehm|escalat|eskal/i.test(nm(t)));
+  }
+  if (!tr) { console.log('Keine Transition für', want, list.map(nm).join(' / ')); return false; }
+  const body = { transition: { id: tr.id } };
+  const res = tr.fields && tr.fields.resolution;
+  if (res) {
+    const vals = res.allowedValues || [];
+    const v = vals.find(x => /done|erledigt|fixed|behoben|gelöst|resolved/i.test(x.name)) || vals[0];
+    if (v) body.fields = { resolution: { id: v.id } };
+  }
+  try { await jira(env, 'POST', '/rest/api/3/issue/' + issueId + '/transitions', body); return true; }
+  catch (e) {
+    if (body.fields) { try { delete body.fields; await jira(env, 'POST', '/rest/api/3/issue/' + issueId + '/transitions', body); return true; } catch (e2) { /* unten */ } }
+    console.log('Transition fehlgeschlagen', want, e.status);
+    return false;
+  }
+}
+/* Spielt fällige Stufen ab. Gibt true zurück, wenn sich etwas geändert hat. */
+async function advance(env, issue) {
+  if (!((issue.fields && issue.fields.labels) || []).includes(FIX_LABEL)) return false;
+  let plan;
+  try { plan = ((await jira(env, 'GET', '/rest/api/3/issue/' + issue.id + '/properties/' + FIX_PROP)) || {}).value; }
+  catch (e) { return false; }
+  if (!plan || !plan.start || plan.done >= 3) return false;
+  const mins = fixMinutes(env), now = Date.now();
+  const due = mins.filter(m => now >= plan.start + m * 60000).length;
+  if (due <= plan.done) return false;
+  const from = plan.done;
+  plan.done = due;
+  // zuerst den Fortschritt sichern, damit parallele Abrufe nichts doppelt posten
+  await jira(env, 'PUT', '/rest/api/3/issue/' + issue.id + '/properties/' + FIX_PROP, plan);
+  for (let n = from + 1; n <= due; n++) {
+    const at = new Date(plan.start + mins[n - 1] * 60000).toISOString();
+    try {
+      if (n === 1) {
+        await transitionTo(env, issue.id, 'progress');
+        try { await jira(env, 'PUT', '/rest/api/3/issue/' + issue.id, { fields: { priority: { id: JIRA_PRIO_ID[plan.prio] } } }); } catch (e) { /* Maske ohne Priorität */ }
+      }
+      await jira(env, 'POST', '/rest/api/3/issue/' + issue.id + '/comment', {
+        body: toAdf(stageText(plan, n)),
+        properties: [
+          { key: 'sd.public.comment', value: { internal: false } },
+          { key: FIX_PROP, value: { stage: n, at } }
+        ]
+      });
+      if (n === 3 && plan.mode === 'resolve') await transitionTo(env, issue.id, 'done');
+    } catch (e) { console.log('Autofix Stufe', n, 'Fehler', e && e.status); }
+  }
+  return true;
+}
+async function advanceAll(env) {
+  const r = await jira(env, 'POST', '/rest/api/3/search/jql', {
+    jql: 'project = ' + PROJECT + ' AND labels = "' + FIX_LABEL + '" AND created >= -2d AND statusCategory != Done',
+    fields: ['labels'], maxResults: 20
+  });
+  for (const issue of (r && r.issues) || []) { try { await advance(env, issue); } catch (e) { /* nächster */ } }
+}
+
 /* Verbindungstest: zeigt nur, ob Jira und das Projekt erreichbar sind */
 async function check(env) {
-  const out = { worker: true, version: VERSION, secrets: !!(env.JIRA_EMAIL && env.JIRA_TOKEN), agent_key: !!env.AGENT_KEY };
+  const out = { worker: true, version: VERSION, secrets: !!(env.JIRA_EMAIL && env.JIRA_TOKEN), agent_key: !!env.AGENT_KEY, autofix_minutes: fixMinutes(env) };
   if (!out.secrets) return out;
   try { await jira(env, 'GET', '/rest/api/3/myself'); out.jira_login = true; }
   catch (e) { out.jira_login = false; out.jira_status = e.status; return out; }
@@ -284,6 +436,9 @@ async function check(env) {
 }
 
 export default {
+  async scheduled(event, env, ctx) {
+    if (env.JIRA_EMAIL && env.JIRA_TOKEN) ctx.waitUntil(advanceAll(env).catch(e => console.log('Cron', e && e.message)));
+  },
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
     const url = new URL(request.url);
