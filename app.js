@@ -438,7 +438,7 @@
       el('h1', null, subject),
       el('dl', { class: 't-meta' },
         el('div', null, el('dt', null, t('t.category')), el('dd', null, t('cat.' + c.category))),
-        el('div', null, el('dt', null, t('t.priority')), el('dd', null, c.priority ? t('p.' + c.priority) : t('t.priority.pending'))),
+        el('div', null, el('dt', null, t('t.priority')), el('dd', null, c.priority ? t('p.' + c.priority) : t('t.priority.pending'), c.priority && c.priorityBy === 'ai' ? el('small', { class: 'prio-ai' }, t('t.priority.ai')) : null)),
         el('div', null, el('dt', null, t('t.created')), el('dd', null, fmtDate(c.created))),
         el('div', null, el('dt', null, t('t.updated')), el('dd', null, fmtDateTime(c.updated)))),
       el('p', { class: 'hint t-privacy' }, t('t.privacy')),

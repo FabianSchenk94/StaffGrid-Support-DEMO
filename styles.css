@@ -274,6 +274,7 @@ fieldset { border: 0; padding: 0; margin: 0; }
 .t-meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0 0; padding: 20px 22px; background: var(--sheet); }
 .t-meta dt { font-size: .8125rem; color: var(--muted); }
 .t-meta dd { margin: 2px 0 0; font-weight: 500; font-size: .9375rem; }
+.t-meta .prio-ai { display: block; margin-top: 2px; font-size: .75rem; font-weight: 400; color: var(--muted); }
 .t-history { margin-top: 32px; }
 .events { list-style: none; padding: 0; margin: 16px 0 0; position: relative; }
 .events::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: var(--line); }
