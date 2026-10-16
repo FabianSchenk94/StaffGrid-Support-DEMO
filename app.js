@@ -6,7 +6,7 @@
   'use strict';
 
   const SG_CONFIG = {
-    apiUrl: ''   // später: https://<worker>.<subdomain>.workers.dev
+    apiUrl: 'https://staffgrid-support.staffgrid.workers.dev/'   // Cloudflare Worker → Jira Service Management
   };
 
   const T = window.SG_TEXT, ARTICLES = window.SG_ARTICLES, CATS = window.SG_CATEGORIES;

@@ -17,12 +17,11 @@ Example case: `SG-4X7Q-9MKD`
 ## How it works today
 
 Plain HTML, CSS and JavaScript, no build step. Fonts are self-hosted (Schibsted Grotesk, SIL Open Font License). Photos are AI-generated and show fictional customer companies; they are stored as WebP in two sizes (`img/`).
-Until the backend is connected, cases are stored only in the visitor's browser (`localStorage`).
+Cases are stored in Jira Service Management (Free plan). The website talks to a Cloudflare Worker (`worker/worker.js`), which keeps the Jira API token secret. Contact details are saved as internal notes and never appear in the case status view. If `apiUrl` in `app.js` is empty, cases fall back to the visitor's browser (`localStorage`).
 
 ## Planned next steps
 
-1. **Backend: Jira Service Management (Free plan) behind a Cloudflare Worker.** The Worker keeps the Jira API token secret and offers three actions to the website: `create_case`, `get_case`, `reply_case`. The frontend already calls them once `apiUrl` is set in `app.js`. Internal Jira comments stay hidden; the sequential Jira keys are never shown.
-2. **AI support agent** (ElevenLabs) for chat and voice: answers from the knowledge base, opens cases and reports case status. English first, French and German supported.
+1. **AI support agent** (ElevenLabs) for chat and voice: answers from the knowledge base, opens cases and reports case status. English first, French and German supported.
 
 ## Files
 
