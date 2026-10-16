@@ -11,7 +11,8 @@
  * Prüfung: GET /check  → zeigt, ob Jira erreichbar ist (keine persönlichen Daten)
  */
 
-const JIRA_SITE = 'https://staffgrid-support.atlassian.net';
+const VERSION = '2026-10-16.4';
+const JIRA_SITE ='https://staffgrid-support.atlassian.net';
 const PROJECT = 'SUP';
 const ALLOWED_ORIGINS = [
   'https://fabianschenk94.github.io',
@@ -140,10 +141,10 @@ async function toCase(env, issue, id) {
   const sc = (f.status && f.status.statusCategory && f.status.statusCategory.key) || 'new';
   const sname = (f.status && f.status.name) || '';
   let status = 'open';
+  // Nur eindeutige Arbeitsstatus zählen als „In Bearbeitung“; „Waiting for support“ u. Ä. bleibt „Eingegangen“
   if (sc === 'done') status = 'resolved';
-  else if (/waiting for customer|warten auf (den )?kunden/i.test(sname)) status = 'waiting';
-  else if (/waiting for support|warten auf (den )?support|^open$|^offen$|^neu$|^new$/i.test(sname)) status = 'open';
-  else if (sc === 'indeterminate') status = 'progress';
+  else if (/customer|kunde/i.test(sname)) status = 'waiting';
+  else if (/progress|bearbeitung|in arbeit|escalat|eskal|pending|ausstehend|investigat|untersuch|implement|work in/i.test(sname)) status = 'progress';
   // Priorität erst zeigen, wenn der Service Desk den Fall angefasst hat
   const priority = status === 'open' ? '' : (PRIO[String((f.priority && f.priority.name) || '').toLowerCase()] || '');
 
@@ -223,7 +224,7 @@ async function replyCase(env, d) {
 
 /* Verbindungstest: zeigt nur, ob Jira und das Projekt erreichbar sind */
 async function check(env) {
-  const out = { worker: true, secrets: !!(env.JIRA_EMAIL && env.JIRA_TOKEN) };
+  const out = { worker: true, version: VERSION, secrets: !!(env.JIRA_EMAIL && env.JIRA_TOKEN) };
   if (!out.secrets) return out;
   try { await jira(env, 'GET', '/rest/api/3/myself'); out.jira_login = true; }
   catch (e) { out.jira_login = false; out.jira_status = e.status; return out; }
@@ -235,6 +236,12 @@ async function check(env) {
     const tid = await issueTypeId(env);
     out.chosen_type = ((p.issueTypes || []).find(t => t.id === tid) || {}).name;
   } catch (e) { out.project = false; out.project_status = e.status; return out; }
+  try {
+    const st = await jira(env, 'GET', '/rest/api/3/project/' + PROJECT + '/statuses');
+    const names = new Set();
+    for (const t of st || []) for (const s of t.statuses || []) names.add(s.name + ' (' + ((s.statusCategory || {}).key || '?') + ')');
+    out.statuses = Array.from(names);
+  } catch (e) { out.statuses = false; }
   try { await jira(env, 'POST', '/rest/api/3/search/jql', { jql: 'project = ' + PROJECT, maxResults: 1, fields: ['summary'] }); out.search = true; }
   catch (e) { out.search = false; out.search_status = e.status; }
   return out;
