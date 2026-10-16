@@ -13,7 +13,7 @@
  * Prüfung: GET /check  → zeigt, ob Jira erreichbar ist (keine persönlichen Daten)
  */
 
-const VERSION = '2026-10-16.5';
+const VERSION = '2026-10-16.6';
 const JIRA_SITE = 'https://staffgrid-support.atlassian.net';
 const PROJECT = 'SUP';
 const ALLOWED_ORIGINS = [
@@ -182,8 +182,18 @@ async function createCase(env, d, isAgent) {
   const description = clip(d.description, 5000);
   const category = CATEGORIES.includes(d.category) ? d.category : null;
   const lang = ['en', 'fr', 'de'].includes(d.lang) ? d.lang : 'en';
-  if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !company || !category || !subject || !description) {
-    return { error: 'invalid', code: 400 };
+  // Genaue Rückmeldung, damit der Agent gezielt nachfragen kann statt „technischer Fehler“ zu melden
+  const missing = [];
+  if (!name) missing.push('name');
+  if (!company) missing.push('company');
+  if (!category) missing.push('category');
+  if (!subject) missing.push('subject');
+  if (!description) missing.push('description');
+  if (!email) missing.push('email');
+  if (missing.length) return { error: 'missing_fields', code: 400, fields: missing };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: 'invalid_email', code: 400, fields: ['email'],
+      hint: 'The email address must contain exactly one @ and a domain, e.g. name@company.com. Ask the person to repeat it.' };
   }
   // Priorität darf nur der Agent setzen (KI-Ersteinschätzung); das Website-Formular nie
   const aiPrio = isAgent && /^p[1-4]$/.test(String(d.priority || '').toLowerCase()) ? String(d.priority).toLowerCase() : '';
@@ -307,7 +317,12 @@ export default {
         if (limited(ip, 'reply', 10 * f, 600000)) return fail(429, 'slow_down', origin);
         r = await replyCase(env, d);
       } else return fail(400, 'action', origin);
-      if (r.error) return fail(r.code, r.error, origin);
+      if (r.error) {
+        const body = { ok: false, code: r.code, error: r.error };
+        if (r.fields) body.fields = r.fields;
+        if (r.hint) body.hint = r.hint;
+        return reply(body, r.code, origin);
+      }
       return reply({ ok: true, case: r.case }, 200, origin);
     } catch (e) {
       console.log('Fehler', e && e.message);
