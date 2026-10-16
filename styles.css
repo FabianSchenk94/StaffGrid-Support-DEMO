@@ -285,6 +285,7 @@ fieldset { border: 0; padding: 0; margin: 0; }
 .ev-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
 .ev-who { font-weight: 700; font-size: .9375rem; }
 .ev-time { font-size: .8125rem; color: var(--muted); }
+.ev-sim { font-size: .75rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
 .ev-body { margin-top: 6px; background: var(--sheet); padding: 14px 16px; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 46ch; }
 .ev.system .ev-body { background: #E9EAE7; color: var(--muted); }
 .ev.note .ev-body { background: transparent; padding: 0; color: var(--muted); }

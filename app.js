@@ -447,7 +447,7 @@
       el('section', { class: 't-history' },
         el('h2', null, t('t.history')),
         el('ol', { class: 'events' }, c.events.map(e => el('li', { class: 'ev ' + e.who },
-          el('div', { class: 'ev-head' }, el('span', { class: 'ev-who' }, who[e.who] || e.who), el('time', { class: 'ev-time', datetime: e.at }, fmtDateTime(e.at))),
+          el('div', { class: 'ev-head' }, el('span', { class: 'ev-who' }, who[e.who] || e.who), e.sim ? el('span', { class: 'ev-sim' }, t('ev.sim')) : null, el('time', { class: 'ev-time', datetime: e.at }, fmtDateTime(e.at))),
           el('div', { class: 'ev-body' }, e.key ? t(e.key) : e.text))))),
       el('form', { class: 'reply', novalidate: true, onsubmit: async ev => {
         ev.preventDefault();
