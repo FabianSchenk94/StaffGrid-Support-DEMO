@@ -14,7 +14,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='14' fill='%231C2228'/%3E%3Crect x='12' y='17' width='28' height='7' rx='3.5' fill='%23fff'/%3E%3Crect x='20' y='29' width='32' height='7' rx='3.5' fill='%239DB7D3'/%3E%3Crect x='12' y='41' width='22' height='7' rx='3.5' fill='%23fff'/%3E%3Crect x='36' y='11' width='4' height='43' rx='2' fill='%23FF7A1A'/%3E%3C/svg%3E">
 <link rel="preload" href="fonts/sg-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/sg-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
@@ -165,6 +165,18 @@
   <!-- Fall eröffnen -->
   <div class="view narrow" data-view="new" hidden>
     <h1 data-i18n="new.title">Open a case</h1>
+    <aside class="agent-card" aria-labelledby="agentTitle">
+      <span class="agent-orb" aria-hidden="true"></span>
+      <div class="agent-body">
+        <p class="agent-kicker" data-i18n="agent.kicker">Faster with Adrian</p>
+        <h2 id="agentTitle" data-i18n="agent.title">Talk to Adrian, our AI assistant</h2>
+        <p data-i18n="agent.text"></p>
+        <div class="agent-actions">
+          <button type="button" class="btn accent" data-agent="call" data-i18n="agent.call">Talk to Adrian</button>
+          <button type="button" class="btn ghost" data-agent="chat" data-i18n="agent.chat">Write to Adrian</button>
+        </div>
+      </div>
+    </aside>
     <p class="lead" data-i18n="new.lead"></p>
     <figure class="page-photo"><img src="img/fall-terminal-offline-1600.webp" srcset="img/fall-terminal-offline-800.webp 800w, img/fall-terminal-offline-1600.webp 1600w" sizes="(max-width: 800px) 100vw, 760px" width="1600" height="1067" alt="" data-i18n-alt="alt.offline" loading="lazy"></figure>
 
@@ -250,6 +262,7 @@
       </form>
       <figure class="page-photo"><img src="img/support-terminal-montage-1600.webp" srcset="img/support-terminal-montage-800.webp 800w, img/support-terminal-montage-1600.webp 1600w" sizes="(max-width: 800px) 100vw, 760px" width="1600" height="1067" alt="" data-i18n-alt="alt.terminal" loading="lazy"></figure>
       <p class="example"><span data-i18n="track.example"></span> <button type="button" class="link" id="trackExample" data-i18n="track.example.btn">Open example</button></p>
+      <p class="agent-line"><span class="agent-orb small" aria-hidden="true"></span><span data-i18n="agent.track"></span> <button type="button" class="link" data-agent="chat" data-i18n="agent.chat">Write to Adrian</button></p>
     </div>
     <div id="ticketView" hidden></div>
   </div>
@@ -264,7 +277,11 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="content.js?v=6"></script>
-<script src="app.js?v=9"></script>
+<!-- KI-Assistent Adrian (ElevenLabs): Chat und Sprache, unten rechts. Sprache folgt der Website (app.js). -->
+<elevenlabs-convai id="adrianWidget" agent-id="agent_5701m52nfb4seg4960zs4v308034"></elevenlabs-convai>
+<script src="https://unpkg.com/@elevenlabs/convai-widget-embed@0.19.0" async type="text/javascript"></script>
+
+<script src="content.js?v=7"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

@@ -42,6 +42,8 @@
   }
   function applyText() {
     document.documentElement.lang = lang;
+    const aw = document.getElementById('adrianWidget');
+    if (aw) aw.setAttribute('override-language', lang);   // Adrian startet in der Sprache der Website
     document.title = t('meta.title');
     $$('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
     $$('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
@@ -568,6 +570,21 @@
         alert.textContent = t('err.network'); alert.hidden = false;
       } finally { btn.disabled = false; btn.textContent = t('f.submit'); }
     });
+    // Adrian (ElevenLabs-Widget) aus der Seite heraus öffnen: Knopf im Widget suchen und klicken
+    const findButtons = (root, out = []) => {
+      root.querySelectorAll('*').forEach(el => { if (el.tagName === 'BUTTON') out.push(el); if (el.shadowRoot) findButtons(el.shadowRoot, out); });
+      return out;
+    };
+    $$('[data-agent]').forEach(b => b.addEventListener('click', () => {
+      const w = $('#adrianWidget');
+      if (!w) return;
+      const btns = w.shadowRoot ? findButtons(w.shadowRoot) : [];
+      const label = x => (x.textContent + ' ' + (x.getAttribute('aria-label') || '')).toLowerCase();
+      const want = b.dataset.agent === 'call'
+        ? /talk|call|sprechen|anruf|parler|appel/ : /chat|write|schreiben|écrire|message|nachricht/;
+      const hit = btns.find(x => want.test(label(x)));
+      if (hit) hit.click(); else toast(t('agent.loading'));
+    }));
     $('#doneView').addEventListener('click', () => { $('#t_id').value = current.id; openCase(current.id); });
     $('#doneCopy').addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(current.id); toast(t('ok.copied')); }
