@@ -8,7 +8,7 @@ Kette: Website-Widget → ElevenLabs-Agent → Webhook-Tools → Cloudflare Work
 
 **Stand 16.10.2026:** Agent angelegt und veröffentlicht als „[StaffGrid] Adrian Support (Chat & Voice)“,
 ID `agent_5701m52nfb4seg4960zs4v308034` (Duplikat von Ferdinand, alle Hotel-Inhalte ersetzt).
-Stimme „Mark – Casual, Relaxed and Light“, Wissensbasis „immer im Prompt“ statt RAG, Widget mit oranger Orb,
+Stimme „Noah – YA Audiobooks Narrator“, Wissensbasis „immer im Prompt“ statt RAG, Widget mit oranger Orb,
 Zustimmungs-Speicherschlüssel `staffgrid_adrian_terms`. Die Website setzt `override-language` passend zur gewählten Sprache.
 
 ---
@@ -34,13 +34,13 @@ Der Worker erkennt den Agenten an einem geheimen Schlüssel. Nur mit diesem Schl
 | Weitere Sprachen | Französisch, Deutsch |
 | LLM | wie bei Ferdinand (ruft Tools zuverlässig auf) |
 | Temperatur | 0,2 |
-| Stimme | männlich, ruhig, professionell, international (neutrales Englisch, z. B. aus der Voice Library mit Filter „male · calm · conversational“); mehrsprachiges Modell wie bei Ferdinand; Stability ca. 0,6, Similarity ca. 0,6 |
+| Stimme | „Noah – YA Audiobooks Narrator“ (zuvor „Mark – Casual, Relaxed and Light“); männlich, ruhig, international; mehrsprachiges Modell wie bei Ferdinand; Stability ca. 0,6, Similarity ca. 0,6 |
 | Audio-Tags | Voice → Suggested audio tags: Thoughtfully, Curious, Reassuringly, Confidently, Patiently, Excitedly, Chuckles, Sighs (Hotel-Tags wie Warmly/Laughing entfernen) |
 | Avatar | `adrian-avatar-512.jpg` (Headshot mit Headset, Ordner „IT DEmo“) |
 | Knowledge Base | `adrian-knowledge-base.md` hochladen, RAG aktivieren |
 | Systemtools | `end_call` und `language_detection` aktivieren |
 | Widget | Chat und Sprache, unten rechts; Akzentfarbe `#FF7A1A`, dunkle Fläche `#1C2228`; unter „Markdown links“ `fabianschenk94.github.io` erlauben |
-| Limits | max. 300 s pro Gespräch, Ende nach 60 s Stille, 30 Gespräche/Tag, 2 gleichzeitig, Allowlist `fabianschenk94.github.io` |
+| Limits | max. 480 s pro Gespräch (Ein Fall braucht ca. 5–6 Minuten; 300 s waren zu knapp), Ende nach 60 s Stille, 30 Gespräche/Tag, 3 gleichzeitig, Allowlist `fabianschenk94.github.io` |
 | Eingaben | Dateianhänge aus; ASR-Keywords: StaffGrid, SSO, SAML, SCIM, OpenID, Entity ID, payroll, wage type, terminal, clock-in, Nordtec, Ulm |
 | Guardrails | Focus, Manipulation und Content aktiv; eigener Guardrail siehe Abschnitt 5 |
 | Datenschutz | Gespräche 30 Tage aufbewahren, Audio nicht speichern |
