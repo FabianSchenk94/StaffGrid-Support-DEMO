@@ -18,7 +18,7 @@
  * Prüfung: GET /check  → zeigt, ob Jira erreichbar ist (keine persönlichen Daten)
  */
 
-const VERSION = '2026-10-16.7';
+const VERSION = '2026-10-18.8';
 const JIRA_SITE = 'https://staffgrid-support.atlassian.net';
 const PROJECT = 'SUP';
 const ALLOWED_ORIGINS = [
@@ -185,7 +185,9 @@ async function toCase(env, issue, id) {
     if (fx) ev.sim = true;
     events.push(ev);
   }
-  events.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+  // Jira liefert +0200, eigene Zeitstempel enden auf Z: als Zeitpunkt sortieren, nicht als Text
+  const ts = v => { const t = Date.parse(String(v || '').replace(/([+-]\d\d)(\d\d)$/, '$1:$2')); return isNaN(t) ? 0 : t; };
+  events.sort((a, b) => ts(a.at) - ts(b.at));
   return { id, category: cat, priority, priorityBy, status, subject: f.summary, created: f.created, updated: f.updated, events };
 }
 
