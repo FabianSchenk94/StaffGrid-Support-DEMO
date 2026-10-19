@@ -6,6 +6,10 @@ nennt den Status eines Falls und ergänzt Nachrichten zu bestehenden Fällen.
 
 Kette: Website-Widget → ElevenLabs-Agent → Webhook-Tools → Cloudflare Worker → Jira Service Management
 
+Übersicht mit Architektur, Gesprächsablauf, Prioritäten und Sicherheit als Grafiken: [README](../README.md).
+
+![Architektur von Adrian](images/architecture.webp)
+
 **Stand 16.10.2026:** Agent angelegt und veröffentlicht als „[StaffGrid] Adrian Support (Chat & Voice)“,
 ID `agent_5701m52nfb4seg4960zs4v308034` (Duplikat von Ferdinand, alle Hotel-Inhalte ersetzt).
 Stimme „Noah – YA Audiobooks Narrator“, Wissensbasis „immer im Prompt“ statt RAG, Widget mit oranger Orb,
