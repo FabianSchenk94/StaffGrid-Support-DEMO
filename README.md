@@ -18,6 +18,7 @@ StaffGrid is an invented enterprise software company. Its product, the StaffGrid
 | **Tool use**: three webhook tools (`create_case`, `get_case`, `reply_case`) with confirmation before every write and specific reactions to error codes | [`docs/agent-adrian.md`](docs/agent-adrian.md), [`worker/worker.js`](worker/worker.js) |
 | **Backend integration**: Cloudflare Worker in front of Jira Service Management, secrets kept server-side, rate limit, input validation | [`worker/worker.js`](worker/worker.js) |
 | **Voice UX**: short turns, case numbers spelled with the NATO alphabet, email read back, audio tags for tone | [`docs/agent-adrian.md`](docs/agent-adrian.md) |
+| **Conversation design**: dialog flow with happy path, fallbacks and escalation, plus a persona sheet with tone, voice rules and boundaries | [`docs/dialog-flow-adrian.md`](docs/dialog-flow-adrian.md), [`docs/persona-adrian.md`](docs/persona-adrian.md) |
 | **Knowledge design**: a knowledge base written for an agent, 12 articles in 7 topics | [`docs/adrian-knowledge-base.md`](docs/adrian-knowledge-base.md) |
 | **Multilingual product**: website and agent in EN, FR and DE | [`content.js`](content.js) |
 | **Security and privacy by design**: case lookup by number only, contact data as internal notes, no secrets in the browser or repo | see below |
@@ -63,6 +64,16 @@ The caller cannot set the priority. Adrian listens, applies the rules and, when 
 
 For the demo, Adrian also writes a short **fix plan** for the engineers. The Worker plays it back as Jira comments after about 2, 5 and 7 minutes, so visitors can watch a case move from *received* to *in progress* to *resolved*. These messages are marked "Demo: simulated processing" on the website.
 
+## Dialog flow and persona
+
+![How Adrian handles a conversation: happy path, fallbacks and escalation](docs/images/dialog-flow.webp)
+
+Every step of the happy path has a fallback that brings the conversation back on track, and three situations escalate: a P1 incident, a caller who wants a human, and a shared secret or a system failure. The full flows (as Mermaid diagrams) are in [`docs/dialog-flow-adrian.md`](docs/dialog-flow-adrian.md).
+
+![Persona sheet for Adrian: profile, do and don't, voice, sample lines](docs/images/persona-adrian.webp)
+
+Adrian is a friendly tech nerd: calm, precise and courteous, with a dry tech remark now and then, but never during a P1. Tone, voice rules, audio tags and boundaries: [`docs/persona-adrian.md`](docs/persona-adrian.md).
+
 ## Security and privacy
 
 ![Who sees what: website, Adrian, Cloudflare Worker and Jira, with what each one can see and store](docs/images/security.webp)
@@ -81,6 +92,8 @@ For the demo, Adrian also writes a short **fix plan** for the engineers. The Wor
 | `worker/worker.js` | Cloudflare Worker: Jira integration, case numbers, agent key, rate limit, simulated processing |
 | `docs/agent-adrian.md` | Adrian's full configuration: system prompt, tools, limits and test conversations (setup notes in German) |
 | `docs/adrian-knowledge-base.md` | Adrian's knowledge base |
+| `docs/dialog-flow-adrian.md` | Dialog flow: happy path, fallbacks and escalation as Mermaid diagrams and tables |
+| `docs/persona-adrian.md` | Persona sheet: profile, personality, tone, voice and channel rules, boundaries |
 | `docs/images/` | The graphics in this README |
 | `img/`, `video/`, `fonts/` | Photos (WebP), the night-shift clip and self-hosted fonts (Schibsted Grotesk, SIL Open Font License) |
 
